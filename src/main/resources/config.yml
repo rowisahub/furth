@@ -1,0 +1,4 @@
+CriticalSMP:
+  bountyEveryXHours: 5
+  waitForBountyEnd: true
+

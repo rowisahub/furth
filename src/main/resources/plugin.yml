@@ -1,0 +1,7 @@
+name: Futurehit
+version: '${project.version}'
+main: com.rowisabeast.futurehit.Futurehit
+api-version: 1.17
+authors: [ Row ]
+description: Custom Plugin for Futurehit
+website: https://rowisabeast.com
