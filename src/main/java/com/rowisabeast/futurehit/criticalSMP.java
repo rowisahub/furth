@@ -17,6 +17,9 @@ import net.minecraft.world.entity.Pose;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bukkit.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -33,9 +36,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.Color;
+import java.io.IOException;
 import java.util.*;
 
-public class criticalSMP implements Listener {
+public class criticalSMP implements Listener, CommandExecutor {
 
     private static Futurehit plugin;
 
@@ -63,6 +68,8 @@ public class criticalSMP implements Listener {
         //Get player body
         getDeadPlayers();
 
+        plugin.getCommand("link").setExecutor(this);
+
     }
 
     // Make custom recipes
@@ -82,6 +89,7 @@ public class criticalSMP implements Listener {
         lifeMeta.setDisplayName("Life");
         lifeMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_POTION_EFFECTS);
         lifeMeta.setUnbreakable(true);
+        lifeMeta.setCustomModelData(14123);
         LIFE.setItemMeta(lifeMeta);
         LIFE.addEnchantment(Enchantment.QUICK_CHARGE, Integer.MAX_VALUE);
         LIFE.addEnchantment(Enchantment.OXYGEN, Integer.MAX_VALUE);
@@ -117,6 +125,7 @@ public class criticalSMP implements Listener {
         lifeShardMeta.setUnbreakable(true);
         lifeShardMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_POTION_EFFECTS);
         lifeShardMeta.setDisplayName("Life Shard");
+        lifeShardMeta.setCustomModelData(14123);
         lifeShard.setItemMeta(lifeShardMeta);
         return lifeShard;
     }
@@ -518,5 +527,19 @@ public class criticalSMP implements Listener {
             allJoinedPlayers.add((UUID) document.get("_id"));
         }
         return allJoinedPlayers;
+    }
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) { //  /verify randomcodeSK
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("§8• §7This command is §conly executable §7by players.");
+            return true;
+        }
+        Player player = (Player) sender;
+        if (cmd.getName().equalsIgnoreCase("givelifeshard")) {
+            player.getInventory().addItem(lifeShard, lifeShard, lifeShard);
+            player.sendMessage("Gave you 3 life shards");
+        }
+        return true;
     }
 }
