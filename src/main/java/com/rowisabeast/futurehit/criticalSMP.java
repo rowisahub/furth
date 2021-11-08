@@ -6,6 +6,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import com.rowisabeast.futurehit.event.GiveLifeEvent;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -21,35 +22,41 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Color;
-import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class criticalSMP implements Listener, CommandExecutor {
 
-    private static Futurehit plugin;
+    public static Futurehit plugin;
 
     MongoCollection<Document> players;
     MongoCollection<Document> serverDatabase;
 
+    private final ReentrantLock lock = new ReentrantLock();
+
     ArrayList<UUID> deadPlsSpawnBody = new ArrayList<>();
 
-    ItemStack lifeShard;
+    ItemStack life_Shard;
+    ItemStack life;
+
+    GiveLifeEvent addLifeEvent;
 
     public criticalSMP(Futurehit plugin){
         criticalSMP.plugin = plugin;
@@ -62,18 +69,41 @@ public class criticalSMP implements Listener, CommandExecutor {
         plugin.getLogger().info("Database Ready!");
 
         // Add custom items
-        lifeShard = getLifeShardINIT();
         makeNewRecipes();
 
         //Get player body
         getDeadPlayers();
 
-        plugin.getCommand("link").setExecutor(this);
+        plugin.getCommand("givelifeshard").setExecutor(this);
+        plugin.getCommand("givelife").setExecutor(this);
+        plugin.getCommand("takelife").setExecutor(this);
 
+        addLifeEvent = new GiveLifeEvent(this);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () ->
+                        Bukkit.getScheduler().runTaskTimerAsynchronously(
+                                plugin,
+                                this::tick,
+                                0,
+                                5
+                        ),
+                0
+        );
     }
 
     // Make custom recipes
     public void makeNewRecipes(){
+
+        // live_shard
+        ItemStack lifeShard = new ItemStack(Material.AMETHYST_SHARD);
+        ItemMeta lifeShardMeta = lifeShard.getItemMeta();
+        lifeShardMeta.setUnbreakable(true);
+        lifeShardMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_POTION_EFFECTS);
+        lifeShardMeta.setDisplayName("Life Shard");
+        lifeShardMeta.setCustomModelData(14123);
+        lifeShard.setItemMeta(lifeShardMeta);
+        life_Shard = lifeShard;
+
         // Make god apple recipe
         ItemStack god_apple = new ItemStack(Material.ENCHANTED_GOLDEN_APPLE);
         NamespacedKey key = new NamespacedKey(plugin, "god_apple");
@@ -91,12 +121,6 @@ public class criticalSMP implements Listener, CommandExecutor {
         lifeMeta.setUnbreakable(true);
         lifeMeta.setCustomModelData(14123);
         LIFE.setItemMeta(lifeMeta);
-        LIFE.addEnchantment(Enchantment.QUICK_CHARGE, Integer.MAX_VALUE);
-        LIFE.addEnchantment(Enchantment.OXYGEN, Integer.MAX_VALUE);
-        LIFE.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, Integer.MAX_VALUE);
-        LIFE.addEnchantment(Enchantment.PROTECTION_EXPLOSIONS, Integer.MAX_VALUE);
-        LIFE.addEnchantment(Enchantment.PROTECTION_FIRE, Integer.MAX_VALUE);
-        LIFE.addEnchantment(Enchantment.DURABILITY, Integer.MAX_VALUE);
         NamespacedKey lifeKey = new NamespacedKey(plugin, "life");
         ShapedRecipe lifeRecipe = new ShapedRecipe(lifeKey, LIFE);
 
@@ -105,29 +129,18 @@ public class criticalSMP implements Listener, CommandExecutor {
         //                    123 123 123  / setup
 
         //        3                 4              1                    1
-        // `%`=LIFE  `$`=diamond_blocks  `#`=totem  `*`=netherrite_block
-        lifeRecipe.shape("$%$", "%#%", "$ $")
+        // `%`=LIFE_shard  `$`=diamond_blocks  `#`=totem  `*`=netherrite_block
+        lifeRecipe.shape("$%$", "%#%", "$*$")
                 .setIngredient('$', Material.DIAMOND_BLOCK)
                 .setIngredient('#', Material.TOTEM_OF_UNDYING)
                 .setIngredient('*', Material.NETHERITE_BLOCK)
-                .setIngredient('%', lifeShard);
+                .setIngredient('%', new RecipeChoice.ExactChoice(lifeShard));
 
         Bukkit.addRecipe(recipe_god_apple);
         Bukkit.addRecipe(lifeRecipe);
 
-    }
-    public ItemStack getLifeShardINIT(){
-        ItemStack lifeShard = new ItemStack(Material.AMETHYST_SHARD);
-        lifeShard.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, Integer.MAX_VALUE);
-        lifeShard.addEnchantment(Enchantment.PROTECTION_EXPLOSIONS, Integer.MAX_VALUE);
-        lifeShard.addEnchantment(Enchantment.PROTECTION_FIRE, Integer.MAX_VALUE);
-        ItemMeta lifeShardMeta = lifeShard.getItemMeta();
-        lifeShardMeta.setUnbreakable(true);
-        lifeShardMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_POTION_EFFECTS);
-        lifeShardMeta.setDisplayName("Life Shard");
-        lifeShardMeta.setCustomModelData(14123);
-        lifeShard.setItemMeta(lifeShardMeta);
-        return lifeShard;
+        life = LIFE;
+
     }
     /*
         Item recipe shape
@@ -145,6 +158,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         Integer playerLives = getPlayerLives(player.getUniqueId());//works
 
         dbPlayerEdit(event.getPlayer(), "isOnline", true);
+        dbServerEdit("numberOfPlayersOnline", (int)dbServerGet("numberOfPlayersOnline") + 1);
 
         plugin.getLogger().info("Player `"+player.getName()+"`has `"+playerLives.toString()+"` live(s)");
 
@@ -159,6 +173,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         //If player join with 0 lives, put them into spectator
         if(playerLives==0){
             player.setGameMode(GameMode.SPECTATOR);
+            event.setJoinMessage("You don't have any lives!");
         }
 
         GameProfile gameProfile = ((CraftPlayer) player).getHandle().getGameProfile();
@@ -170,16 +185,20 @@ public class criticalSMP implements Listener, CommandExecutor {
         // SkinText
         dbPlayerEdit(player, "SkinTexture", texture);
         dbPlayerEdit(player, "SkinSignature", signature);
+
+
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event){
         dbPlayerEdit(event.getPlayer(), "isOnline", false);
+        dbServerEdit("numberOfPlayersOnline", (int)dbServerGet("numberOfPlayersOnline") - 1);
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e){
         Player dplayer = e.getEntity();
+        dbPlayerEdit(dplayer, "isAlive", false);
         if(isPlayerBounty(dplayer.getUniqueId())){
             if(dplayer.getKiller()!=null){
                 Player Killer = e.getEntity().getKiller();
@@ -198,10 +217,13 @@ public class criticalSMP implements Listener, CommandExecutor {
 
                     // HEHE, sorry kody
                     spawnCorpseForAll(dplayer);
-                    dbPlayerEdit(dplayer,"deadBodyLocation", new Location(dplayer.getWorld(), dplayer.getLocation().getX(), dplayer.getLocation().getY(), dplayer.getLocation().getZ()));
+                    dbPlayerEdit(dplayer, "deadBodyLocationWorld", dplayer.getWorld().getName());
+                    dbPlayerEdit(dplayer,"deadBodyLocationX", dplayer.getLocation().getX());
+                    dbPlayerEdit(dplayer,"deadBodyLocationY", dplayer.getLocation().getY());
+                    dbPlayerEdit(dplayer,"deadBodyLocationZ", dplayer.getLocation().getZ());
 
                     // Giver Killer a LifeShard
-                    e.getDrops().add(lifeShard);
+                    e.getDrops().add(life_Shard);
                 }
             }
         }else{
@@ -228,10 +250,27 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
     }
 
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent e ){
+        //
+        dbPlayerEdit(e.getPlayer(), "isAlive", true);
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent e){
+        Player p = e.getPlayer();
+        if(e.getAction().isRightClick() && e.getItem().equals(life)){
+            //
+            Bukkit.getPluginManager().callEvent(addLifeEvent);
+            addLifeEvent.addLifeToPlayer(p);
+        }
+    }
+
+    Objective obj;
     public void createBoardList(Player p){
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard board = manager.getNewScoreboard();
-        Objective obj = board.registerNewObjective("CriticalSMP", "dummy", "CriticalSMP", RenderType.INTEGER);
+        obj = board.registerNewObjective("CriticalSMP", "dummy", "CriticalSMP", RenderType.INTEGER);
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.getScore("┌────────────────────────").setScore(10);
         obj.getScore("│ Lives: "+getPlayerLives(p.getUniqueId())).setScore(9); // Client
@@ -246,7 +285,10 @@ public class criticalSMP implements Listener, CommandExecutor {
         p.setScoreboard(board);
     }
 
-
+    public void editPlayerScoreBoard(Player p, String text, Integer score){
+        if(score==10 || score==1) return;
+        obj.getScore("│ "+text).setScore(score);
+    }
 
     public void setPlayerTabNameWithLives(Player p){
         Integer pl = getPlayerLives(p.getUniqueId());
@@ -307,9 +349,13 @@ public class criticalSMP implements Listener, CommandExecutor {
                     .append("isOnline", true)
                     .append("isBounty", false)
                     .append("isNextBounty", false)
-                    .append("deadBodyLocation", new Location(null, 0.0, 0.0, 0.0))
+                    .append("deadBodyLocationWorld", "")
+                    .append("deadBodyLocationX", 0.0)
+                    .append("deadBodyLocationY", 0.0)
+                    .append("deadBodyLocationz", 0.0)
                     .append("SkinTexture", "")
-                    .append("SkinSignature", ""));
+                    .append("SkinSignature", "")
+                    .append("isAlive", true));
             return 3;
         }else{
             return (int) Db.get("lives");
@@ -337,7 +383,9 @@ public class criticalSMP implements Listener, CommandExecutor {
                     .append("isBountyInGame", false)
                     .append("isServerReadyForNextBounty", false)
                     .append("nextBountyUUID", "")
-                    .append("nextBountyName", ""));//
+                    .append("nextBountyName", "")
+                    .append("numberOfPlayersOnline", 0)
+                    .append("bountyOfflineTime", 18000));//
         }
         // serverDatabase was already created
     }
@@ -371,56 +419,71 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     // run async task every 5 hours, not repeat, as we might need to stop the loop from running for a bit
     private void startNextBounty(){
+        lock.lock();
+        //checking if there is enough people
+        if(Bukkit.getOnlinePlayers().size()<2){
+            // not enough people, going to wait...
+            return;
+        }
+
         setServerDBStartNexBounty();
-        runNextBounty();
+        // Get and set bounty
+        setNewBounty();
+        lock.unlock();
     }
-    private @NotNull Runnable runNextBounty(){
+    private void setNewBounty(){
+        //
+        ArrayList<Player> allPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
+        int ranPl = new Random().nextInt(allPlayers.size());
+        Player pickedPlayer = allPlayers.get(ranPl);
+        dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
+        dbServerEdit("currentBountyName", pickedPlayer.getDisplayName());
+        dbPlayerEdit(pickedPlayer, "isBounty", true);
+    }
+    public int secondsToTicks(int Seconds){
+        // 20 ticks per 1 second
+        return Seconds*20;
+    }
+
+    private void tick(){
+        if(lock.tryLock()){
+            return;
+        }
+        lock.lock();
+
+        // Every runnable tick
         Integer bt = getCurrentBountyTimeRemaining();
         if(bt>0){
-            everyTick();
+            if(!Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")).isOnline()){
+                if((int)dbServerGet("bountyOfflineTime")==0){
+                    startNextBounty();
+                }
+                dbServerEdit("bountyOfflineTime", (int)dbServerGet("bountyOfflineTime")-1);
+                lock.unlock();
+                return;
+            }
+
+            dbServerEdit("nextBountyTimeRemaining", bt-1);
+            lock.unlock();
+
         }else if(bt==0){
+            //checking to see if this is the first time running
+            if(dbServerGet("currentBountyUUID").equals("")){
+                // probably the first time running
+                //
+                startNextBounty();
+                lock.unlock();
+                return;
+            }
+
             // Check to see if the server is ready for next bounty
+            dbServerEdit("isBountyTimerUp", true);
             if((Boolean) dbServerGet("isBountyDead") && (Boolean) dbServerGet("wasBountyKilledByPlayer")){
                 startNextBounty();
-            }else{
-                Bukkit.getScheduler().runTaskTimerAsynchronously(
-                        plugin,
-                        runNextBounty(),
-                        1,
-                        0
-                );
             }
+            lock.unlock();
         }
-        return null;
-    }
-    private void pauseCountDown(){
-        tempStopTick = true;
-    }
-    private void resumeCountDown(){
-        tempStopTick = false;
-        everyTick();
-    }
-    Boolean tempStopTick = false;
-    private Runnable everyTick(){
-        if(tempStopTick){
-            // No need to run this now
-        }else {
-            Integer bt = getCurrentBountyTimeRemaining();
-
-            if(bt==0){
-                tempStopTick = true;
-                dbServerEdit("isBountyTimerUp", true);
-            }
-
-            Bukkit.getScheduler().runTaskTimerAsynchronously(
-                    plugin,
-                    everyTick(),
-                    1,
-                    0
-            );
-            dbServerEdit("nextBountyTimeRemaining", bt-1);
-        }
-        return null;
+        lock.unlock();
     }
     private void spawnCorpseForAll(Player deadPerson){
         CraftPlayer craftPlayer = (CraftPlayer) deadPerson;
@@ -471,7 +534,11 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor( (String) dbPlayerGet(deadPerson, "username"))));
 
-        Location deadPersonLocation = (Location) dbPlayerGet(deadPerson, "deadBodyLocation");
+        String wname = (String) dbPlayerGet(deadPerson, "deadBodyLocationWorld");
+        Double BX= (Double) dbPlayerGet(deadPerson, "deadBodyLocationX");
+        Double BY= (Double) dbPlayerGet(deadPerson, "deadBodyLocationY");;
+        Double BZ= (Double) dbPlayerGet(deadPerson, "deadBodyLocationz");;
+        Location deadPersonLocation = new Location(Bukkit.getWorld(wname), BX, BY, BZ);
 
         npc.setPos(deadPersonLocation.getX(), deadPersonLocation.getWorld().getHighestBlockAt(deadPersonLocation).getY()+1, deadPersonLocation.getZ());
         npc.setPose(Pose.SLEEPING);
@@ -537,8 +604,18 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         Player player = (Player) sender;
         if (cmd.getName().equalsIgnoreCase("givelifeshard")) {
-            player.getInventory().addItem(lifeShard, lifeShard, lifeShard);
+            player.getInventory().addItem(life_Shard, life_Shard, life_Shard);
             player.sendMessage("Gave you 3 life shards");
+            return true;
+        }
+        if(cmd.getName().equalsIgnoreCase("givelife")){
+            Bukkit.getPluginManager().callEvent(addLifeEvent);
+            addLifeEvent.addLifeToPlayer(player);
+            return true;
+        }
+        if(cmd.getName().equalsIgnoreCase("takelife")){
+            dbPlayerEdit(player, "lives", (int)dbPlayerGet(player.getUniqueId(), "lives")-1);
+            return true;
         }
         return true;
     }

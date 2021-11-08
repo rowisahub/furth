@@ -5,3 +5,14 @@ api-version: 1.17
 authors: [ Row ]
 description: Custom Plugin for Futurehit
 website: https://rowisabeast.com
+
+commands:
+  givelifeshard:
+    usage: /givelifeshard
+    description: Get 3 live shards
+  givelife:
+    usage: /givelife
+    description: hi
+  takelife:
+    usage: /takelife
+    description: hi

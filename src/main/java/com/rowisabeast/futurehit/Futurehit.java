@@ -1,5 +1,6 @@
 package com.rowisabeast.futurehit;
 
+import com.google.gson.stream.JsonReader;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
@@ -14,6 +15,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class Futurehit extends JavaPlugin {
 
@@ -33,8 +36,10 @@ public final class Futurehit extends JavaPlugin {
         createConfig();
 
         // Connect to Database
-        connectToDataBase();
+        //((LoggerContext) LoggerFactory.getILoggerFactory()).getLogger("org.mongodb.driver").setLevel(Level.ERROR); // only show ERROR in mongoDB // https://stackoverflow.com/questions/30137564/how-to-disable-mongodb-java-driver-logging
+        //LogManager.getLogManager().getLogger("com.mongodb").setLevel(Level.SEVERE);
 
+        connectToDataBase();
         // Run criticalSMP
         critical = new criticalSMP(this);
     }
@@ -68,3 +73,14 @@ public final class Futurehit extends JavaPlugin {
         // Plugin shutdown logic
     }
 }
+
+/*
+
+
+LogManager.getLogManager().getLogger("org.mongodb.driver.connection").setLevel(Level.OFF);
+        LogManager.getLogManager().getLogger("org.mongodb.driver.management").setLevel(Level.OFF);
+        LogManager.getLogManager().getLogger("org.mongodb.driver.cluster").setLevel(Level.OFF);
+        LogManager.getLogManager().getLogger("org.mongodb.driver.protocol.insert").setLevel(Level.OFF);
+        LogManager.getLogManager().getLogger("org.mongodb.driver.protocol.query").setLevel(Level.OFF);
+        LogManager.getLogManager().getLogger("org.mongodb.driver.protocol.update").setLevel(Level.OFF);
+ */
