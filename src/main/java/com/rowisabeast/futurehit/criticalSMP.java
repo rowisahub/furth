@@ -436,7 +436,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             plugin.getLogger().warning("Not enough players");
             return;
         }
-
+        dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
         setServerDBStartNexBounty();
         // Get and set bounty
         setNewBounty();
@@ -496,7 +496,6 @@ public class criticalSMP implements Listener, CommandExecutor {
                 //
                 plugin.getLogger().warning("Probably the first time running, starting bounty");
                 startNextBounty();
-                dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
                 lock.unlock();
                 return;
             }
