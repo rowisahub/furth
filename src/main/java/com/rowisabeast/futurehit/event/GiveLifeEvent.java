@@ -36,7 +36,7 @@ public class GiveLifeEvent extends Event implements Cancellable {
     public void addLifeToPlayer(Player p){
         SMP.dbPlayerEdit(p, "lives", (int)SMP.dbPlayerGet(p.getUniqueId(), "lives")+1);
         SMP.setPlayerTabNameWithLives(p);
-        SMP.editPlayerScoreBoard(p, "Lives: "+(int)SMP.dbPlayerGet(p.getUniqueId(), "lives"), 9);
+        SMP.editPlayerScoreBoard("Lives: "+((int)SMP.dbPlayerGet(p.getUniqueId(), "lives")-1), "Lives: "+(int)SMP.dbPlayerGet(p.getUniqueId(), "lives"), 9);
         messageAllPlayersPlayerHasGainedALife(p);
         consoleAnu(p);
     }
