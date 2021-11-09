@@ -469,7 +469,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     private void tick(){
         plugin.getLogger().warning("Running tick");
-        if(lock.tryLock()){
+        if(!lock.tryLock()){
             plugin.getLogger().warning("Tick is locked");
             return;
         }
@@ -480,9 +480,6 @@ public class criticalSMP implements Listener, CommandExecutor {
         Integer bt = getCurrentBountyTimeRemaining();
         if(bt>0){
             if(!Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")).isOnline()){
-                if((int)dbServerGet("bountyOfflineTime")==0){
-                    startNextBounty();
-                }
                 dbServerEdit("bountyOfflineTime", (int)dbServerGet("bountyOfflineTime")-1);
                 lock.unlock();
                 return;
@@ -494,11 +491,12 @@ public class criticalSMP implements Listener, CommandExecutor {
         }else if(bt==0){
             plugin.getLogger().warning("no bounty Time");
             //checking to see if this is the first time running
-            if(dbServerGet("currentBountyUUID")==""){
+            if((int)dbServerGet("howManyBountys")==0){
                 // probably the first time running
                 //
                 plugin.getLogger().warning("Probably the first time running, starting bounty");
                 startNextBounty();
+                dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
                 lock.unlock();
                 return;
             }
