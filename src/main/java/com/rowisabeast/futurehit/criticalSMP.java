@@ -58,6 +58,9 @@ public class criticalSMP implements Listener, CommandExecutor {
     public ItemStack life_Shard;
     public ItemStack life;
 
+    public HashMap<UUID, Scoreboard>playerScoreboard = new HashMap<>();
+    public HashMap<UUID, Objective>playerObjective = new HashMap<>();
+
     GiveLifeEvent addLifeEvent;
     RemoveLifeEvent removeLifeEvent;
 
@@ -274,11 +277,11 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
     }
 
-    public Objective obj;
+    //public Objective obj;
     public void createBoardList(Player p){
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard board = manager.getNewScoreboard();
-        obj = board.registerNewObjective("CriticalSMP", "dummy", "CriticalSMP", RenderType.INTEGER);
+        Objective obj = board.registerNewObjective("CriticalSMP", "dummy", "CriticalSMP", RenderType.INTEGER);
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.getScore("┌────────────────────────").setScore(10);
         obj.getScore("│ Lives: "+getPlayerLives(p.getUniqueId())).setScore(9); // Client
@@ -291,12 +294,16 @@ public class criticalSMP implements Listener, CommandExecutor {
         obj.getScore("│ Bounty deaths: "+getPlayerBDeaths(p.getUniqueId())).setScore(2); // Client
         obj.getScore("└────────────────────────").setScore(1);
         p.setScoreboard(board);
+        playerScoreboard.put(p.getUniqueId(), board);
+        playerObjective.put(p.getUniqueId(), obj);
     }
 
-    public void editPlayerScoreBoard( String Original, String text, Integer score){
+    public void editPlayerScoreBoard(Player p, String Original, String text, Integer score){
         if(score==10 || score==1) return;
-        obj.getScoreboard().resetScores("│ "+Original);
-        obj.getScore("│ "+text).setScore(score);
+        //obj.getScoreboard().resetScores("│ "+Original);
+        //obj.getScore("│ "+text).setScore(score);
+        playerScoreboard.get(p.getUniqueId()).resetScores("│ "+Original);
+        playerObjective.get(p.getUniqueId()).getScore("│ "+text).setScore(score);
     }
 
     public void setPlayerTabNameWithLives(Player p){
@@ -433,7 +440,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         //checking if there is enough people
         if(Bukkit.getOnlinePlayers().size()<2){
             // not enough people, going to wait...
-            plugin.getLogger().warning("Not enough players");
+//            plugin.getLogger().warning("Not enough players");
             return;
         }
         dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
@@ -456,7 +463,9 @@ public class criticalSMP implements Listener, CommandExecutor {
             lastpNAME = (String) dbServerGet("currentBountyName");
         }
 
-        editPlayerScoreBoard("Current Bounty: "+lastpNAME, "Current Bounty: "+pickedPlayer.getName(), 6);
+        for(Player olp : allPlayers){
+            editPlayerScoreBoard(olp, "Current Bounty: "+lastpNAME, "Current Bounty: "+pickedPlayer.getName(), 6);
+        }
 
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
         dbServerEdit("currentBountyName", pickedPlayer.getName());
@@ -468,12 +477,12 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     private void tick(){
-        plugin.getLogger().warning("Running tick");
+        //plugin.getLogger().warning("Running tick");
         if(!lock.tryLock()){
-            plugin.getLogger().warning("Tick is locked");
+//            plugin.getLogger().warning("Tick is locked");
             return;
         }
-        plugin.getLogger().warning("tick isn't locked, locking and running code");
+//        plugin.getLogger().warning("tick isn't locked, locking and running code");
         lock.lock();
 
         // Every runnable tick
@@ -489,22 +498,22 @@ public class criticalSMP implements Listener, CommandExecutor {
             lock.unlock();
 
         }else if(bt==0){
-            plugin.getLogger().warning("no bounty Time");
+//            plugin.getLogger().warning("no bounty Time");
             //checking to see if this is the first time running
             if((int)dbServerGet("howManyBountys")==0){
                 // probably the first time running
                 //
-                plugin.getLogger().warning("Probably the first time running, starting bounty");
+//                plugin.getLogger().warning("Probably the first time running, starting bounty");
                 startNextBounty();
                 lock.unlock();
                 return;
             }
 
-            plugin.getLogger().warning("DB time is up");
+//            plugin.getLogger().warning("DB time is up");
             // Check to see if the server is ready for next bounty
             dbServerEdit("isBountyTimerUp", true);
             if((Boolean) dbServerGet("isBountyDead") && (Boolean) dbServerGet("wasBountyKilledByPlayer")){
-                plugin.getLogger().warning("Start nex bounty");
+//                plugin.getLogger().warning("Start nex bounty");
                 startNextBounty();
             }
             lock.unlock();

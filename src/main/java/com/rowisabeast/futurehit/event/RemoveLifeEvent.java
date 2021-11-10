@@ -38,7 +38,7 @@ public class RemoveLifeEvent extends Event implements Cancellable {
         SMP.dbPlayerEdit(killedPlayer, "lives", (int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives")-1);
         SMP.dbPlayerEdit(killedPlayer, "numberOfTImesPlayerHasDiedAsBounty", (int) SMP.dbPlayerGet(killedPlayer.getUniqueId(),"numberOfTImesPlayerHasDiedAsBounty")+1);
         SMP.setPlayerTabNameWithLives(killedPlayer);
-        SMP.editPlayerScoreBoard("Lives: "+((int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives")+1), "Lives: "+(int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives"), 9);
+        SMP.editPlayerScoreBoard(killedPlayer, "Lives: "+((int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives")+1), "Lives: "+(int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives"), 9);
         //messageAllPlayersPlayerHasLostALife(p);
         consoleAnu(killedPlayer);
     }
