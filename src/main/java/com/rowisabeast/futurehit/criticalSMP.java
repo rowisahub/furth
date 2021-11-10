@@ -496,8 +496,26 @@ public class criticalSMP implements Listener, CommandExecutor {
         // Every runnable tick
         Integer bt = getCurrentBountyTimeRemaining();
         if(bt>0){
-            if(!Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")).isOnline()){
+            if(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID"))==null) {
+                if(Bukkit.getOnlinePlayers().size()==0){
+                    // no player online
+                    lock.unlock();
+                    return;
+                }else if(Bukkit.getOnlinePlayers().size()<2){
+                    // not enough player to resume
+                    lock.unlock();
+                    return;
+                }
                 dbServerEdit("bountyOfflineTime", (int)dbServerGet("bountyOfflineTime")-1);
+                lock.unlock();
+                return;
+            }
+            if(Bukkit.getOnlinePlayers().size()==0){
+                // no player online
+                lock.unlock();
+                return;
+            }else if(Bukkit.getOnlinePlayers().size()<2){
+                // not enough player to resume
                 lock.unlock();
                 return;
             }
