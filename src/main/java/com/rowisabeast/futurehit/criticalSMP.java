@@ -48,8 +48,8 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     public static Futurehit plugin;
 
-    MongoCollection<Document> players;
-    MongoCollection<Document> serverDatabase;
+    public MongoCollection<Document> players;
+    public MongoCollection<Document> serverDatabase;
 
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -553,6 +553,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         lock.unlock();
     }
+    // add body from event
     public void spawnCorpseForAll(Player deadPerson){
         CraftPlayer craftPlayer = (CraftPlayer) deadPerson;
         MinecraftServer server = craftPlayer.getHandle().getServer();

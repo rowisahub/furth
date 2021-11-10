@@ -1,6 +1,9 @@
 package com.rowisabeast.futurehit.event;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import com.rowisabeast.futurehit.criticalSMP;
+import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -8,6 +11,8 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.entity.PlayerDeathEvent;
+
+import java.util.ArrayList;
 
 public class RemoveLifeEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
@@ -41,6 +46,21 @@ public class RemoveLifeEvent extends Event implements Cancellable {
         SMP.editPlayerScoreBoard(killedPlayer, "Lives: "+((int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives")+1), "Lives: "+(int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives"), 9);
         //messageAllPlayersPlayerHasLostALife(p);
         consoleAnu(killedPlayer);
+        if((int)SMP.dbPlayerGet(killedPlayer.getUniqueId(), "lives")==0){
+            ArrayList<Bson> ValUpdate = new ArrayList<>();
+            //ValUpdate.add(Updates.set("nextBountyTimeRemaining", dbServerGet("defaultNextBountyTimeTick")));
+            ValUpdate.add(Updates.set("deadBodyLocationWorld", killedPlayer.getWorld().getName()));
+            ValUpdate.add(Updates.set("deadBodyLocationX", killedPlayer.getLocation().getX()));
+            ValUpdate.add(Updates.set("deadBodyLocationY", killedPlayer.getLocation().getY()));
+            ValUpdate.add(Updates.set("deadBodyLocationz", killedPlayer.getLocation().getZ()));
+
+            //ValUpdate.add(Updates.set("", ""));
+
+            SMP.players.updateMany(Filters.eq("_id", killedPlayer.getUniqueId()), ValUpdate);
+
+            SMP.spawnCorpseForAll(killedPlayer);
+        }
+
     }
 
     private void messageAllPlayersPlayerHasLostALife(Player p){
