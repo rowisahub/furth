@@ -282,12 +282,20 @@ public class criticalSMP implements Listener, CommandExecutor {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard board = manager.getNewScoreboard();
         Objective obj = board.registerNewObjective("CriticalSMP", "dummy", "CriticalSMP", RenderType.INTEGER);
+
+        String lastpNAME;
+        if((int)dbServerGet("howManyBountys")==0){
+            lastpNAME = "INIT";
+        }else{
+            lastpNAME = (String) dbServerGet("currentBountyName");
+        }
+
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.getScore("┌────────────────────────").setScore(10);
         obj.getScore("│ Lives: "+getPlayerLives(p.getUniqueId())).setScore(9); // Client
         obj.getScore("│").setScore(8);
         obj.getScore("│").setScore(7);
-        obj.getScore("│ Current Bounty: INIT").setScore(6); // Server
+        obj.getScore("│ Current Bounty: "+lastpNAME).setScore(6); // Server
         obj.getScore("│ Next Bounty: INIT").setScore(5); // Server
         obj.getScore("│").setScore(4);
         obj.getScore("│ Bounty kills: "+getPlayerBKills(p.getUniqueId())).setScore(3); // Client
@@ -497,12 +505,10 @@ public class criticalSMP implements Listener, CommandExecutor {
         Integer bt = getCurrentBountyTimeRemaining();
         if(bt>0){
             if(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID"))==null) {
-                if(Bukkit.getOnlinePlayers().size()==0){
+                plugin.getLogger().warning("current bounty isn't online");
+                int op = Bukkit.getOnlinePlayers().size();
+                if(op<=1){
                     // no player online
-                    lock.unlock();
-                    return;
-                }else if(Bukkit.getOnlinePlayers().size()<2){
-                    // not enough player to resume
                     lock.unlock();
                     return;
                 }
