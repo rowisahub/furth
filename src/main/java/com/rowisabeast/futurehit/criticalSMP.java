@@ -321,6 +321,8 @@ public class criticalSMP implements Listener, CommandExecutor {
             ph.append("§c♥");
         }
         p.setPlayerListName(p.getName()+" "+ph.toString());
+
+        // p.playNote(p.getLocation(), Instrument.CHIME, Note.flat(1, Note.Tone.A));
     }
 
     public Boolean isPlayerBounty(UUID uuid){
@@ -435,7 +437,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         ValUpdate.add(Updates.set("currentBountyUUID",""));
         ValUpdate.add(Updates.set("currentBountyName",""));
         serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
-        for(UUID uuid : getAllServerPlayers()){
+        for(UUID uuid : getAllDadabasePlayers()){
             dpPlayerUUIDEdit(uuid, "isBounty", false);
             dpPlayerUUIDEdit(uuid, "isNextBounty", false);
             dpPlayerUUIDEdit(uuid, "ifKilledByBounty", false);
@@ -450,9 +452,10 @@ public class criticalSMP implements Listener, CommandExecutor {
     private void startNextBounty(){
         lock.lock();
         //checking if there is enough people
-        if(Bukkit.getOnlinePlayers().size()<1){
+        if(!(Bukkit.getOnlinePlayers().size()>=2)){
             // not enough people, going to wait...
 //            plugin.getLogger().warning("Not enough players");
+            lock.unlock();
             return;
         }
         dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
@@ -654,6 +657,15 @@ public class criticalSMP implements Listener, CommandExecutor {
         for (Player p : Bukkit.getOnlinePlayers()){
             allJoinedPlayers.add(p.getUniqueId());
         }
+        FindIterable<Document> iterDoc = players.find();
+        for (Document document : iterDoc) {
+            allJoinedPlayers.add((UUID) document.get("_id"));
+        }
+        return allJoinedPlayers;
+    }
+
+    private ArrayList<UUID> getAllDadabasePlayers(){
+        ArrayList<UUID> allJoinedPlayers = new ArrayList<>();
         FindIterable<Document> iterDoc = players.find();
         for (Document document : iterDoc) {
             allJoinedPlayers.add((UUID) document.get("_id"));
