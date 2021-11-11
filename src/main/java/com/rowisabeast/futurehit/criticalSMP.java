@@ -452,13 +452,12 @@ public class criticalSMP implements Listener, CommandExecutor {
     private void startNextBounty(){
         lock.lock();
         //checking if there is enough people
-        if(!(Bukkit.getOnlinePlayers().size()>=2)){
+        if(Bukkit.getOnlinePlayers().size()<2){
             // not enough people, going to wait...
 //            plugin.getLogger().warning("Not enough players");
             lock.unlock();
             return;
         }
-        dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
         setServerDBStartNexBounty();
         // Get and set bounty
         setNewBounty();
@@ -489,6 +488,8 @@ public class criticalSMP implements Listener, CommandExecutor {
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
         dbServerEdit("currentBountyName", pickedPlayer.getName());
         dbPlayerEdit(pickedPlayer, "isBounty", true);
+        dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
+        lock.unlock();
     }
     public int secondsToTicks(int Seconds){
         // 20 ticks per 1 second
@@ -510,7 +511,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             if(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID"))==null) {
                 plugin.getLogger().warning("current bounty isn't online");
                 int op = Bukkit.getOnlinePlayers().size();
-                if(op<=1){
+                if(op<2){
                     // no player online
                     lock.unlock();
                     return;
@@ -519,7 +520,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                 lock.unlock();
                 return;
             }
-            if(Bukkit.getOnlinePlayers().size()<1){
+            if(Bukkit.getOnlinePlayers().size()<2){
                 // not enough player to resume
                 lock.unlock();
                 return;
