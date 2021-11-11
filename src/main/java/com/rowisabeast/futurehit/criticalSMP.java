@@ -47,6 +47,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class criticalSMP implements Listener, CommandExecutor {
 
+    // TODO
+    // - Make server ID based
+    //   - Have the server read the config to fine `ID` and uses that ID for the database
+
     public static Futurehit plugin;
 
     public MongoCollection<Document> players;
@@ -512,7 +516,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     private void tick(){
         //plugin.getLogger().warning("Running tick");
-        if(!lock.tryLock()){
+        if(lock.tryLock()){
             if(debug){
                 plugin.getLogger().warning("Tick is locked");
             }
