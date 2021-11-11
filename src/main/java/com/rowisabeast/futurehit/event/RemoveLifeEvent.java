@@ -6,6 +6,7 @@ import com.rowisabeast.futurehit.criticalSMP;
 import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -59,6 +60,7 @@ public class RemoveLifeEvent extends Event implements Cancellable {
             SMP.players.updateMany(Filters.eq("_id", killedPlayer.getUniqueId()), ValUpdate);
 
             SMP.spawnCorpseForAll(killedPlayer);
+            killedPlayer.setGameMode(GameMode.SPECTATOR);
         }
 
     }

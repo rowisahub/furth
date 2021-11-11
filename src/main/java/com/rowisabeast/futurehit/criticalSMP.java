@@ -450,7 +450,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     private void startNextBounty(){
         lock.lock();
         //checking if there is enough people
-        if(Bukkit.getOnlinePlayers().size()<2){
+        if(Bukkit.getOnlinePlayers().size()<1){
             // not enough people, going to wait...
 //            plugin.getLogger().warning("Not enough players");
             return;
@@ -520,7 +520,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                 // no player online
                 lock.unlock();
                 return;
-            }else if(Bukkit.getOnlinePlayers().size()<2){
+            }else if(Bukkit.getOnlinePlayers().size()<1){
                 // not enough player to resume
                 lock.unlock();
                 return;
