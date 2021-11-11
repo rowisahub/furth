@@ -427,6 +427,8 @@ public class criticalSMP implements Listener, CommandExecutor {
         return Db.get(key);
     }
 
+
+    boolean debug = true;
     private void setServerDBStartNexBounty(){
         ArrayList<Bson> ValUpdate = new ArrayList<>();
         ValUpdate.add(Updates.set("nextBountyTimeRemaining", dbServerGet("defaultNextBountyTimeTick")));
@@ -438,10 +440,16 @@ public class criticalSMP implements Listener, CommandExecutor {
         ValUpdate.add(Updates.set("currentBountyName",""));
         serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
         for(UUID uuid : getAllDadabasePlayers()){
+            if(debug){
+                plugin.getLogger().info("Player with UUID: "+uuid+" got reset");
+            }
             dpPlayerUUIDEdit(uuid, "isBounty", false);
             dpPlayerUUIDEdit(uuid, "isNextBounty", false);
             dpPlayerUUIDEdit(uuid, "ifKilledByBounty", false);
         }
+        //if(debug){
+        //    plugin.getLogger().info("");
+        //}
     }
 
     // Set player bounty
@@ -455,6 +463,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         if(Bukkit.getOnlinePlayers().size()<2){
             // not enough people, going to wait...
 //            plugin.getLogger().warning("Not enough players");
+            if(debug){
+                plugin.getLogger().info(Bukkit.getOnlinePlayers().size()+"<2");
+            }
             lock.unlock();
             return;
         }
@@ -469,6 +480,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         int ranPl = new Random().nextInt(allPlayers.size());
         Player pickedPlayer = allPlayers.get(ranPl);
 
+        if(debug){
+            plugin.getLogger().info("Picked player name: "+pickedPlayer.getName()+"\nPicker Player UUID: "+pickedPlayer.getUniqueId());
+        }
         //edit player scoreboards
         String lastpNAME;
         if((int)dbServerGet("howManyBountys")==0){
@@ -499,10 +513,16 @@ public class criticalSMP implements Listener, CommandExecutor {
     private void tick(){
         //plugin.getLogger().warning("Running tick");
         if(!lock.tryLock()){
-//            plugin.getLogger().warning("Tick is locked");
+            if(debug){
+                plugin.getLogger().warning("Tick is locked");
+            }
+//
             return;
         }
-//        plugin.getLogger().warning("tick isn't locked, locking and running code");
+        if(debug){
+            plugin.getLogger().warning("tick isn't locked, locking and running code");
+        }
+//
         lock.lock();
 
         // Every runnable tick
@@ -513,15 +533,24 @@ public class criticalSMP implements Listener, CommandExecutor {
                 int op = Bukkit.getOnlinePlayers().size();
                 if(op<2){
                     // no player online
+                    if(debug){
+                        plugin.getLogger().info(op+"<2\nunlocked");
+                    }
                     lock.unlock();
                     return;
                 }
                 dbServerEdit("bountyOfflineTime", (int)dbServerGet("bountyOfflineTime")-1);
+                if(debug){
+                    plugin.getLogger().info("bounty offline time: "+dbServerGet("bountyOfflineTime"));
+                }
                 lock.unlock();
                 return;
             }
             if(Bukkit.getOnlinePlayers().size()<2){
                 // not enough player to resume
+                if(debug){
+                    plugin.getLogger().info(Bukkit.getOnlinePlayers().size()+"<2\nunlocked");
+                }
                 lock.unlock();
                 return;
             }
@@ -535,7 +564,10 @@ public class criticalSMP implements Listener, CommandExecutor {
             if((int)dbServerGet("howManyBountys")==0){
                 // probably the first time running
                 //
-//                plugin.getLogger().warning("Probably the first time running, starting bounty");
+                if(debug){
+                    plugin.getLogger().warning("Probably the first time running, starting bounty");
+                }
+//
                 startNextBounty();
                 lock.unlock();
                 return;
@@ -546,6 +578,9 @@ public class criticalSMP implements Listener, CommandExecutor {
             dbServerEdit("isBountyTimerUp", true);
             if((Boolean) dbServerGet("wasBountyKilledByPlayer")){
 //                plugin.getLogger().warning("Start nex bounty");
+                if(debug){
+                    plugin.getLogger().info("Bounty was killed by player, next");
+                }
                 startNextBounty();
                 //
             }
