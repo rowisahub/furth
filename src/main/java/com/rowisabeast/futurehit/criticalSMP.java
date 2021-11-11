@@ -8,6 +8,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.rowisabeast.futurehit.event.GiveLifeEvent;
 import com.rowisabeast.futurehit.event.RemoveLifeEvent;
+import com.rowisabeast.futurehit.lockFut.lockFut;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -51,7 +52,8 @@ public class criticalSMP implements Listener, CommandExecutor {
     public MongoCollection<Document> players;
     public MongoCollection<Document> serverDatabase;
 
-    private final ReentrantLock lock = new ReentrantLock();
+    //private final ReentrantLock lock = new ReentrantLock();
+    private final lockFut lock = new lockFut();
 
     public ArrayList<UUID> deadPlsSpawnBody = new ArrayList<>();
 
@@ -458,7 +460,6 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     // run async task every 5 hours, not repeat, as we might need to stop the loop from running for a bit
     private void startNextBounty(){
-        lock.lock();
         //checking if there is enough people
         if(Bukkit.getOnlinePlayers().size()<2){
             // not enough people, going to wait...
@@ -472,7 +473,6 @@ public class criticalSMP implements Listener, CommandExecutor {
         setServerDBStartNexBounty();
         // Get and set bounty
         setNewBounty();
-        lock.unlock();
     }
     private void setNewBounty(){
         //
@@ -516,14 +516,13 @@ public class criticalSMP implements Listener, CommandExecutor {
             if(debug){
                 plugin.getLogger().warning("Tick is locked");
             }
-//
             return;
         }
+        lock.lock();
         if(debug){
             plugin.getLogger().warning("tick isn't locked, locking and running code");
         }
 //
-        lock.lock();
 
         // Every runnable tick
         Integer bt = getCurrentBountyTimeRemaining();
@@ -569,7 +568,6 @@ public class criticalSMP implements Listener, CommandExecutor {
                 }
 //
                 startNextBounty();
-                lock.unlock();
                 return;
             }
 
@@ -582,6 +580,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                     plugin.getLogger().info("Bounty was killed by player, next");
                 }
                 startNextBounty();
+                return;
                 //
             }
             lock.unlock();
