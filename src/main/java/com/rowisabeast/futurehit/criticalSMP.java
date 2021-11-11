@@ -399,7 +399,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             serverDatabase.insertOne(new Document()
                     .append("_id", "CriticalSMP")
                     .append("nextBountyTimeRemaining", 0)
-                    .append("defaultNextBountyTimeTick", 360000)
+                    .append("defaultNextBountyTimeTick", 6000) // 360000
                     .append("isBountyTimerUp", false)
                     .append("name", "CriticalSMP")
                     .append("currentBountyUUID", "")
