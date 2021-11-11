@@ -70,6 +70,8 @@ public class criticalSMP implements Listener, CommandExecutor {
     GiveLifeEvent addLifeEvent;
     RemoveLifeEvent removeLifeEvent;
 
+    boolean debug = true;
+
     public criticalSMP(Futurehit plugin){
         criticalSMP.plugin = plugin;
 
@@ -98,7 +100,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                                 plugin,
                                 this::tick,
                                 0,
-                                5
+                                1
                         ),
                 0
         );
@@ -213,12 +215,17 @@ public class criticalSMP implements Listener, CommandExecutor {
         Player killedPlayer = e.getEntity();
         dbPlayerEdit(killedPlayer, "isAlive", false);
         if(isPlayerBounty(killedPlayer.getUniqueId())){
+            if(debug){
+                plugin.getLogger().info("Player that dies is bounty");
+            }
             if(killedPlayer.getKiller()!=null){
                 Bukkit.getPluginManager().callEvent(removeLifeEvent);
                 removeLifeEvent.removeLifeFromPlayer(killedPlayer);
                 Player killer = e.getEntity().getKiller();
 
                 dbPlayerEdit(killer, "numberOfTimesPlayerHasKilledBounty", (int) dbPlayerGet(killer.getUniqueId(), "numberOfTimesPlayerHasKilledBounty")+1);
+
+                dbServerEdit("wasBountyKilledByPlayer", true);
 
                 //spawning dead body
                 if(getPlayerLives(killedPlayer.getUniqueId())==0){
@@ -433,8 +440,6 @@ public class criticalSMP implements Listener, CommandExecutor {
         return Db.get(key);
     }
 
-
-    boolean debug = true;
     private void setServerDBStartNexBounty(){
         ArrayList<Bson> ValUpdate = new ArrayList<>();
         ValUpdate.add(Updates.set("nextBountyTimeRemaining", dbServerGet("defaultNextBountyTimeTick")));
@@ -456,6 +461,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         //if(debug){
         //    plugin.getLogger().info("");
         //}
+        if(debug){
+            plugin.getLogger().info("");
+        }
     }
 
     // Set player bounty
@@ -495,8 +503,8 @@ public class criticalSMP implements Listener, CommandExecutor {
             lastpNAME = (String) dbServerGet("currentBountyName");
             // Change player lives
             //dbPlayerEdit(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")), "lives", (int) dbPlayerGet((UUID) dbServerGet("currentBountyUUID"), "lives")-1);
-            Bukkit.getPluginManager().callEvent(removeLifeEvent);
-            removeLifeEvent.removeLifeFromPlayer(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")));
+            //Bukkit.getPluginManager().callEvent(removeLifeEvent);
+            //removeLifeEvent.removeLifeFromPlayer(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")));
         }
 
         for(Player olp : allPlayers){
@@ -574,6 +582,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                 startNextBounty();
                 return;
             }
+
 
 //            plugin.getLogger().warning("DB time is up");
             // Check to see if the server is ready for next bounty

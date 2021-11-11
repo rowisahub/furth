@@ -10,17 +10,17 @@ public class lockFut {
     }
 
     public void lock(){
-        System.out.println("[Futurehit] Locked!");
+        System.out.println("Locked!");
         programLock = true;
     }
 
     public void unlock(){
-        System.out.println("[Futurehit] Unlocked!");
+        System.out.println("Unlocked!");
         programLock = false;
     }
 
     public boolean tryLock(){
-        System.out.println("[Futurehit] Try lock! "+programLock);
+        System.out.println("Try lock! "+programLock);
         return programLock;
     }
 
