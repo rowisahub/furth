@@ -53,7 +53,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     public MongoCollection<Document> serverDatabase;
 
     //private final ReentrantLock lock = new ReentrantLock();
-    private final lockFut lock = new lockFut();
+    private final lockFut lock = new lockFut(true);
 
     public ArrayList<UUID> deadPlsSpawnBody = new ArrayList<>();
 
