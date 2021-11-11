@@ -516,11 +516,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                 lock.unlock();
                 return;
             }
-            if(Bukkit.getOnlinePlayers().size()==0){
-                // no player online
-                lock.unlock();
-                return;
-            }else if(Bukkit.getOnlinePlayers().size()<1){
+            if(Bukkit.getOnlinePlayers().size()<1){
                 // not enough player to resume
                 lock.unlock();
                 return;
