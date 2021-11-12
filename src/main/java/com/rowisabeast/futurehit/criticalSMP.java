@@ -47,10 +47,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class criticalSMP implements Listener, CommandExecutor {
 
-    // TODO
-    // - Make server ID based
-    //   - Have the server read the config to fine `ID` and uses that ID for the database
-
     public static Futurehit plugin;
 
     public MongoCollection<Document> players;
@@ -409,10 +405,10 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     //Set and get Server Database
     private void getServerDB(){
-        Document ts = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
+        Document ts = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
         if(ts==null || ts.size()==0){
             serverDatabase.insertOne(new Document()
-                    .append("_id", "CriticalSMP")
+                    .append("_id", plugin.serverData.getInt("ID"))
                     .append("nextBountyTimeRemaining", 0)
                     .append("defaultNextBountyTimeTick", 6000) // 360000
                     .append("isBountyTimerUp", false)
@@ -432,11 +428,11 @@ public class criticalSMP implements Listener, CommandExecutor {
         // serverDatabase was already created
     }
     private Integer getCurrentBountyTimeRemaining(){
-        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
+        Document Db = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
         return (int) Db.get("nextBountyTimeRemaining");
     }
     private Object dbServerGet(String key){
-        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
+        Document Db = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
         return Db.get(key);
     }
 
