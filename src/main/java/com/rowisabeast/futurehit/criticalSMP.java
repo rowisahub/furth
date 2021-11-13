@@ -64,13 +64,13 @@ public class criticalSMP implements Listener, CommandExecutor {
     public ItemStack life_Shard;
     public ItemStack life;
 
-    public HashMap<UUID, Scoreboard>playerScoreboard = new HashMap<>();
-    public HashMap<UUID, Objective>playerObjective = new HashMap<>();
+    public HashMap<UUID, Scoreboard> playerScoreboard = new HashMap<>();
+    public HashMap<UUID, Objective> playerObjective = new HashMap<>();
 
     GiveLifeEvent addLifeEvent;
     RemoveLifeEvent removeLifeEvent;
 
-    public criticalSMP(Futurehit plugin){
+    public criticalSMP(Futurehit plugin) {
         criticalSMP.plugin = plugin;
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -89,7 +89,6 @@ public class criticalSMP implements Listener, CommandExecutor {
         plugin.getCommand("givelifeshard").setExecutor(this);
         plugin.getCommand("givelife").setExecutor(this);
         plugin.getCommand("takelife").setExecutor(this);
-        plugin.getCommand("spawnnpc").setExecutor(this);
 
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
@@ -106,7 +105,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     // Make custom recipes
-    public void makeNewRecipes(){
+    public void makeNewRecipes() {
 
         // live_shard
         ItemStack lifeShard = new ItemStack(Material.AMETHYST_SHARD);
@@ -156,6 +155,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         life = LIFE;
 
     }
+
     /*
         Item recipe shape
 
@@ -165,27 +165,27 @@ public class criticalSMP implements Listener, CommandExecutor {
     */
     // On player join event
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event){
+    public void onPlayerJoin(PlayerJoinEvent event) {
         // PLayer joined
         Player player = event.getPlayer();
         //plugin.getLogger().info(getPLayerLives(player.getUniqueId()).toString());
         Integer playerLives = getPlayerLives(player.getUniqueId());//works
 
         dbPlayerEdit(event.getPlayer(), "isOnline", true);
-        dbServerEdit("numberOfPlayersOnline", (int)dbServerGet("numberOfPlayersOnline") + 1);
+        dbServerEdit("numberOfPlayersOnline", (int) dbServerGet("numberOfPlayersOnline") + 1);
 
-        plugin.getLogger().info("Player `"+player.getName()+"`has `"+playerLives.toString()+"` live(s)");
+        plugin.getLogger().info("Player `" + player.getName() + "`has `" + playerLives.toString() + "` live(s)");
 
         createBoardList(player); // Sidebar
         setPlayerTabNameWithLives(player); // Tablist
 
         //Spawn all dead body's for player
-        for(UUID p : deadPlsSpawnBody){
+        for (UUID p : deadPlsSpawnBody) {
             spawnCorpseForPlayer(player, p);
         }
 
         //If player join with 0 lives, put them into spectator
-        if(playerLives==0){
+        if (playerLives == 0) {
             player.setGameMode(GameMode.SPECTATOR);
             event.setJoinMessage("You don't have any lives!");
         }
@@ -204,30 +204,30 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event){
+    public void onPlayerQuit(PlayerQuitEvent event) {
         dbPlayerEdit(event.getPlayer(), "isOnline", false);
-        dbServerEdit("numberOfPlayersOnline", (int)dbServerGet("numberOfPlayersOnline") - 1);
+        dbServerEdit("numberOfPlayersOnline", (int) dbServerGet("numberOfPlayersOnline") - 1);
     }
 
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent e){
+    public void onPlayerDeath(PlayerDeathEvent e) {
         Player killedPlayer = e.getEntity();
         dbPlayerEdit(killedPlayer, "isAlive", false);
-        if(isPlayerBounty(killedPlayer.getUniqueId())){
-            if(debug){
+        if (isPlayerBounty(killedPlayer.getUniqueId())) {
+            if (debug) {
                 plugin.getLogger().info("Player that dies is bounty");
             }
-            if(killedPlayer.getKiller()!=null){
+            if (killedPlayer.getKiller() != null) {
                 Bukkit.getPluginManager().callEvent(removeLifeEvent);
                 removeLifeEvent.removeLifeFromPlayer(killedPlayer);
                 Player killer = e.getEntity().getKiller();
 
-                dbPlayerEdit(killer, "numberOfTimesPlayerHasKilledBounty", (int) dbPlayerGet(killer.getUniqueId(), "numberOfTimesPlayerHasKilledBounty")+1);
+                dbPlayerEdit(killer, "numberOfTimesPlayerHasKilledBounty", (int) dbPlayerGet(killer.getUniqueId(), "numberOfTimesPlayerHasKilledBounty") + 1);
 
                 dbServerEdit("wasBountyKilledByPlayer", true);
 
                 //spawning dead body
-                if(getPlayerLives(killedPlayer.getUniqueId())==0){
+                if (getPlayerLives(killedPlayer.getUniqueId()) == 0) {
                     // Player has no lives, THEY ARE DEAD HAHAHA
                     // add players dead body, from codys stream, IN CHECKMARK DM
 
@@ -239,19 +239,19 @@ public class criticalSMP implements Listener, CommandExecutor {
                     // HEHE, sorry kody
                     spawnCorpseForAll(killedPlayer);
                     dbPlayerEdit(killedPlayer, "deadBodyLocationWorld", killedPlayer.getWorld().getName());
-                    dbPlayerEdit(killedPlayer,"deadBodyLocationX", killedPlayer.getLocation().getX());
-                    dbPlayerEdit(killedPlayer,"deadBodyLocationY", killedPlayer.getLocation().getY());
-                    dbPlayerEdit(killedPlayer,"deadBodyLocationZ", killedPlayer.getLocation().getZ());
+                    dbPlayerEdit(killedPlayer, "deadBodyLocationX", killedPlayer.getLocation().getX());
+                    dbPlayerEdit(killedPlayer, "deadBodyLocationY", killedPlayer.getLocation().getY());
+                    dbPlayerEdit(killedPlayer, "deadBodyLocationZ", killedPlayer.getLocation().getZ());
 
                     // Giver Killer a LifeShard
                     e.getDrops().add(life_Shard);
                 }
             }
-        }else{
+        } else {
             // Player isn't bounty
-            if(killedPlayer.getKiller()!=null){
+            if (killedPlayer.getKiller() != null) {
                 Player Killer = e.getEntity().getKiller();
-                if(isPlayerBounty(Killer.getUniqueId())){
+                if (isPlayerBounty(Killer.getUniqueId())) {
                     // The Killer is the bounty
                     dbPlayerEdit(killedPlayer, "ifKilledByBounty", true);
                 }
@@ -260,27 +260,27 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageByEntityEvent e){
-        if(e.getEntity() instanceof Player && e.getDamager() instanceof Player){
-            Player player =  Bukkit.getPlayer(e.getEntity().getUniqueId());
+    public void onEntityDamage(EntityDamageByEntityEvent e) {
+        if (e.getEntity() instanceof Player && e.getDamager() instanceof Player) {
+            Player player = Bukkit.getPlayer(e.getEntity().getUniqueId());
             Player damager = Bukkit.getPlayer(e.getDamager().getUniqueId());
-            if((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")){
+            if ((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")) {
                 e.setCancelled(true);
-                damager.sendMessage(ChatColor.BOLD+ChatColor.RED.toString()+player.customName()+ ChatColor.DARK_RED +" is a Bounty, and has killed you. You can't hurt them!");
+                damager.sendMessage(ChatColor.BOLD + ChatColor.RED.toString() + player.customName() + ChatColor.DARK_RED + " is a Bounty, and has killed you. You can't hurt them!");
             }
         }
     }
 
     @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent e ){
+    public void onPlayerRespawn(PlayerRespawnEvent e) {
         //
         dbPlayerEdit(e.getPlayer(), "isAlive", true);
     }
 
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent e){
+    public void onPlayerInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if((e.getAction()==Action.RIGHT_CLICK_AIR || e.getAction()==Action.RIGHT_CLICK_BLOCK) && e.getItem()==(life)){
+        if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && e.getItem() == (life)) {
             //
             Bukkit.getPluginManager().callEvent(addLifeEvent);
             addLifeEvent.addLifeToPlayer(p);
@@ -290,92 +290,92 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     //public Objective obj;
-    public void createBoardList(Player p){
+    public void createBoardList(Player p) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard board = manager.getNewScoreboard();
         Objective obj = board.registerNewObjective("CriticalSMP", "dummy", "CriticalSMP", RenderType.INTEGER);
 
         String lastpNAME;
-        if((int)dbServerGet("howManyBountys")==0){
+        if ((int) dbServerGet("howManyBountys") == 0) {
             lastpNAME = "INIT";
-        }else{
+        } else {
             lastpNAME = (String) dbServerGet("currentBountyName");
         }
 
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.getScore("┌────────────────────────").setScore(10);
-        obj.getScore("│ Lives: "+getPlayerLives(p.getUniqueId())).setScore(9); // Client
+        obj.getScore("│ Lives: " + getPlayerLives(p.getUniqueId())).setScore(9); // Client
         obj.getScore("│").setScore(8);
         obj.getScore("│").setScore(7);
-        obj.getScore("│ Current Bounty: "+lastpNAME).setScore(6); // Server
+        obj.getScore("│ Current Bounty: " + lastpNAME).setScore(6); // Server
         obj.getScore("│ Next Bounty: INIT").setScore(5); // Server
         obj.getScore("│").setScore(4);
-        obj.getScore("│ Bounty kills: "+getPlayerBKills(p.getUniqueId())).setScore(3); // Client
-        obj.getScore("│ Bounty deaths: "+getPlayerBDeaths(p.getUniqueId())).setScore(2); // Client
+        obj.getScore("│ Bounty kills: " + getPlayerBKills(p.getUniqueId())).setScore(3); // Client
+        obj.getScore("│ Bounty deaths: " + getPlayerBDeaths(p.getUniqueId())).setScore(2); // Client
         obj.getScore("└────────────────────────").setScore(1);
         p.setScoreboard(board);
         playerScoreboard.put(p.getUniqueId(), board);
         playerObjective.put(p.getUniqueId(), obj);
     }
 
-    public void editPlayerScoreBoard(Player p, String Original, String text, Integer score){
-        if(score==10 || score==1) return;
+    public void editPlayerScoreBoard(Player p, String Original, String text, Integer score) {
+        if (score == 10 || score == 1) return;
         //obj.getScoreboard().resetScores("│ "+Original);
         //obj.getScore("│ "+text).setScore(score);
-        playerScoreboard.get(p.getUniqueId()).resetScores("│ "+Original);
-        playerObjective.get(p.getUniqueId()).getScore("│ "+text).setScore(score);
+        playerScoreboard.get(p.getUniqueId()).resetScores("│ " + Original);
+        playerObjective.get(p.getUniqueId()).getScore("│ " + text).setScore(score);
     }
 
-    public void setPlayerTabNameWithLives(Player p){
+    public void setPlayerTabNameWithLives(Player p) {
         Integer pl = getPlayerLives(p.getUniqueId());
         StringBuilder ph = new StringBuilder();
-        for(int n = 0; n < pl; n++){
+        for (int n = 0; n < pl; n++) {
             ph.append("§c♥");
         }
-        p.setPlayerListName(p.getName()+" "+ph.toString());
+        p.setPlayerListName(p.getName() + " " + ph.toString());
 
         // p.playNote(p.getLocation(), Instrument.CHIME, Note.flat(1, Note.Tone.A));
     }
 
-    public Boolean isPlayerBounty(UUID uuid){
+    public Boolean isPlayerBounty(UUID uuid) {
         //Document Db = getPLayerFromDB(uuid);
         //return Boolean.parseBoolean((String) Db.get("isCurrentBounty"));
         return (boolean) dbPlayerGet(uuid, "isBounty");
     }
 
-    public Integer getPlayerBKills(UUID uuid){
+    public Integer getPlayerBKills(UUID uuid) {
         //Document Db = getPLayerFromDB(uuid);
         //return (int) Db.get("numberOfTimesPlayerHasKilledBounty");
         return (int) dbPlayerGet(uuid, "numberOfTimesPlayerHasKilledBounty");
     }
 
-    public Object dbPlayerGet(UUID uuid, String key){
+    public Object dbPlayerGet(UUID uuid, String key) {
         Document Db = getPLayerFromDB(uuid);
         return Db.get(key);
     }
 
-    public Integer getPlayerBDeaths(UUID uuid){
+    public Integer getPlayerBDeaths(UUID uuid) {
         Document Db = getPLayerFromDB(uuid);
         return (int) Db.get("numberOfTImesPlayerHasDiedAsBounty");
     }
 
-    public void dbPlayerEdit(Player pl, String key, Object valueToUpdate){
+    public void dbPlayerEdit(Player pl, String key, Object valueToUpdate) {
         UUID uuid = pl.getUniqueId();
         players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
     }
 
-    public void dpPlayerUUIDEdit(UUID uuid, String key, Object valueToUpdate){
+    public void dpPlayerUUIDEdit(UUID uuid, String key, Object valueToUpdate) {
         players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
     }
 
-    public void dbServerEdit(String key, Object valueToUpdate){
+    public void dbServerEdit(String key, Object valueToUpdate) {
         serverDatabase.updateOne(Filters.eq("_id", "CriticalSMP"), Updates.set(key, valueToUpdate));
     }
 
-    public Integer getPlayerLives(UUID uuid){
+    public Integer getPlayerLives(UUID uuid) {
         Player pl = Bukkit.getPlayer(uuid);
         Document Db = getPLayerFromDB(uuid);
-        if(Db==null || Db.size()==0){
+        if (Db == null || Db.size() == 0) {
             players.insertOne(new Document()
                     .append("_id", uuid)
                     .append("uuid", uuid)
@@ -397,19 +397,19 @@ public class criticalSMP implements Listener, CommandExecutor {
                     .append("SkinSignature", "")
                     .append("isAlive", true));
             return 3;
-        }else{
+        } else {
             return (int) Db.get("lives");
         }
     }
 
-    public Document getPLayerFromDB(UUID uuid){ // WORKS
+    public Document getPLayerFromDB(UUID uuid) { // WORKS
         return players.find(new Document("_id", uuid)).first();
     }
 
     //Set and get Server Database
-    private void getServerDB(){
+    private void getServerDB() {
         Document ts = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
-        if(ts==null || ts.size()==0){
+        if (ts == null || ts.size() == 0) {
             serverDatabase.insertOne(new Document()
                     .append("_id", plugin.serverData.getInt("ID"))
                     .append("nextBountyTimeRemaining", 0)
@@ -430,28 +430,30 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         // serverDatabase was already created
     }
-    private Integer getCurrentBountyTimeRemaining(){
+
+    private Integer getCurrentBountyTimeRemaining() {
         Document Db = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
         return (int) Db.get("nextBountyTimeRemaining");
     }
-    private Object dbServerGet(String key){
+
+    private Object dbServerGet(String key) {
         Document Db = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
         return Db.get(key);
     }
 
-    private void setServerDBStartNexBounty(){
+    private void setServerDBStartNexBounty() {
         ArrayList<Bson> ValUpdate = new ArrayList<>();
         ValUpdate.add(Updates.set("nextBountyTimeRemaining", dbServerGet("defaultNextBountyTimeTick")));
         ValUpdate.add(Updates.set("isBountyTimerUp", false));
         ValUpdate.add(Updates.set("isBountyDead", false));
         ValUpdate.add(Updates.set("wasBountyKilledByPlayer", false));
         ValUpdate.add(Updates.set("isServerReadyForNextBounty", false));
-        ValUpdate.add(Updates.set("currentBountyUUID",""));
-        ValUpdate.add(Updates.set("currentBountyName",""));
+        ValUpdate.add(Updates.set("currentBountyUUID", ""));
+        ValUpdate.add(Updates.set("currentBountyName", ""));
         serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
-        for(UUID uuid : getAllDadabasePlayers()){
-            if(debug){
-                plugin.getLogger().info("Player with UUID: "+uuid+" got reset");
+        for (UUID uuid : getAllDadabasePlayers()) {
+            if (debug) {
+                plugin.getLogger().info("Player with UUID: " + uuid + " got reset");
             }
             dpPlayerUUIDEdit(uuid, "isBounty", false);
             dpPlayerUUIDEdit(uuid, "isNextBounty", false);
@@ -460,7 +462,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         //if(debug){
         //    plugin.getLogger().info("");
         //}
-        if(debug){
+        if (debug) {
             plugin.getLogger().info("");
         }
     }
@@ -470,13 +472,13 @@ public class criticalSMP implements Listener, CommandExecutor {
     // if bounty leaves, wait around 5 min, then if the player is back, continue count down, if not find new player
 
     // run async task every 5 hours, not repeat, as we might need to stop the loop from running for a bit
-    private void startNextBounty(){
+    private void startNextBounty() {
         //checking if there is enough people
-        if(Bukkit.getOnlinePlayers().size()<2){
+        if (Bukkit.getOnlinePlayers().size() < 2) {
             // not enough people, going to wait...
 //            plugin.getLogger().warning("Not enough players");
-            if(debug){
-                plugin.getLogger().info(Bukkit.getOnlinePlayers().size()+"<2");
+            if (debug) {
+                plugin.getLogger().info(Bukkit.getOnlinePlayers().size() + "<2");
             }
             lock.unlock();
             return;
@@ -485,20 +487,21 @@ public class criticalSMP implements Listener, CommandExecutor {
         // Get and set bounty
         setNewBounty();
     }
-    private void setNewBounty(){
+
+    private void setNewBounty() {
         //
         ArrayList<Player> allPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         int ranPl = new Random().nextInt(allPlayers.size());
         Player pickedPlayer = allPlayers.get(ranPl);
 
-        if(debug){
-            plugin.getLogger().info("Picked player name: "+pickedPlayer.getName()+"\nPicker Player UUID: "+pickedPlayer.getUniqueId());
+        if (debug) {
+            plugin.getLogger().info("Picked player name: " + pickedPlayer.getName() + "\nPicker Player UUID: " + pickedPlayer.getUniqueId());
         }
         //edit player scoreboards
         String lastpNAME;
-        if((int)dbServerGet("howManyBountys")==0){
+        if ((int) dbServerGet("howManyBountys") == 0) {
             lastpNAME = "INIT";
-        }else{
+        } else {
             lastpNAME = (String) dbServerGet("currentBountyName");
             // Change player lives
             //dbPlayerEdit(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")), "lives", (int) dbPlayerGet((UUID) dbServerGet("currentBountyUUID"), "lives")-1);
@@ -506,75 +509,76 @@ public class criticalSMP implements Listener, CommandExecutor {
             //removeLifeEvent.removeLifeFromPlayer(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")));
         }
 
-        for(Player olp : allPlayers){
-            editPlayerScoreBoard(olp, "Current Bounty: "+lastpNAME, "Current Bounty: "+pickedPlayer.getName(), 6);
+        for (Player olp : allPlayers) {
+            editPlayerScoreBoard(olp, "Current Bounty: " + lastpNAME, "Current Bounty: " + pickedPlayer.getName(), 6);
         }
 
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
         dbServerEdit("currentBountyName", pickedPlayer.getName());
         dbPlayerEdit(pickedPlayer, "isBounty", true);
-        dbServerEdit("howManyBountys", (int)dbServerGet("howManyBountys")+1);
+        dbServerEdit("howManyBountys", (int) dbServerGet("howManyBountys") + 1);
         lock.unlock();
     }
-    public int secondsToTicks(int Seconds){
+
+    public int secondsToTicks(int Seconds) {
         // 20 ticks per 1 second
-        return Seconds*20;
+        return Seconds * 20;
     }
 
-    private void tick(){
+    private void tick() {
         //plugin.getLogger().warning("Running tick");
-        if(lock.tryLock()){
-            if(debug){
+        if (lock.tryLock()) {
+            if (debug) {
                 plugin.getLogger().warning("Tick is locked");
             }
             return;
         }
         lock.lock();
-        if(debug){
+        if (debug) {
             plugin.getLogger().warning("tick isn't locked, locking and running code");
         }
 //
 
         // Every runnable tick
         Integer bt = getCurrentBountyTimeRemaining();
-        if(bt>0){
-            if(Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID"))==null) {
+        if (bt > 0) {
+            if (Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")) == null) {
                 plugin.getLogger().warning("current bounty isn't online");
                 int op = Bukkit.getOnlinePlayers().size();
-                if(op<2){
+                if (op < 2) {
                     // no player online
-                    if(debug){
-                        plugin.getLogger().info(op+"<2\nunlocked");
+                    if (debug) {
+                        plugin.getLogger().info(op + "<2\nunlocked");
                     }
                     lock.unlock();
                     return;
                 }
-                dbServerEdit("bountyOfflineTime", (int)dbServerGet("bountyOfflineTime")-1);
-                if(debug){
-                    plugin.getLogger().info("bounty offline time: "+dbServerGet("bountyOfflineTime"));
+                dbServerEdit("bountyOfflineTime", (int) dbServerGet("bountyOfflineTime") - 1);
+                if (debug) {
+                    plugin.getLogger().info("bounty offline time: " + dbServerGet("bountyOfflineTime"));
                 }
                 lock.unlock();
                 return;
             }
-            if(Bukkit.getOnlinePlayers().size()<2){
+            if (Bukkit.getOnlinePlayers().size() < 2) {
                 // not enough player to resume
-                if(debug){
-                    plugin.getLogger().info(Bukkit.getOnlinePlayers().size()+"<2\nunlocked");
+                if (debug) {
+                    plugin.getLogger().info(Bukkit.getOnlinePlayers().size() + "<2\nunlocked");
                 }
                 lock.unlock();
                 return;
             }
 
-            dbServerEdit("nextBountyTimeRemaining", bt-1);
+            dbServerEdit("nextBountyTimeRemaining", bt - 1);
             lock.unlock();
 
-        }else if(bt==0){
+        } else if (bt == 0) {
 //            plugin.getLogger().warning("no bounty Time");
             //checking to see if this is the first time running
-            if((int)dbServerGet("howManyBountys")==0){
+            if ((int) dbServerGet("howManyBountys") == 0) {
                 // probably the first time running
                 //
-                if(debug){
+                if (debug) {
                     plugin.getLogger().warning("Probably the first time running, starting bounty");
                 }
 //
@@ -586,9 +590,9 @@ public class criticalSMP implements Listener, CommandExecutor {
 //            plugin.getLogger().warning("DB time is up");
             // Check to see if the server is ready for next bounty
             dbServerEdit("isBountyTimerUp", true);
-            if((Boolean) dbServerGet("wasBountyKilledByPlayer")){
+            if ((Boolean) dbServerGet("wasBountyKilledByPlayer")) {
 //                plugin.getLogger().warning("Start nex bounty");
-                if(debug){
+                if (debug) {
                     plugin.getLogger().info("Bounty was killed by player, next");
                 }
                 startNextBounty();
@@ -599,8 +603,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         lock.unlock();
     }
+
     // add body from event
-    public void spawnCorpseForAll(Player deadPerson){
+    public void spawnCorpseForAll(Player deadPerson) {
         CraftPlayer craftPlayer = (CraftPlayer) deadPerson;
         MinecraftServer server = craftPlayer.getHandle().getServer();
         ServerLevel level = craftPlayer.getHandle().getLevel();
@@ -611,10 +616,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         //npc.setYHeadRot(deadPerson.getLocation().getDirection().angle(deadPerson.getLocation().getDirection()));
 
 
-
-
-
-        npc.setPos(deadPerson.getLocation().getX(), deadPerson.getLocation().getWorld().getHighestBlockAt(deadPerson.getLocation()).getY()+1, deadPerson.getLocation().getZ());
+        npc.setPos(deadPerson.getLocation().getX(), deadPerson.getLocation().getWorld().getHighestBlockAt(deadPerson.getLocation()).getY() + 1, deadPerson.getLocation().getZ());
         npc.setPose(Pose.SLEEPING);
         npc.setCustomNameVisible(false);
 
@@ -633,7 +635,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
 
         // NOW SEND THE NPC
-        for(Player p : Bukkit.getOnlinePlayers()){
+        for (Player p : Bukkit.getOnlinePlayers()) {
             ServerGamePacketListenerImpl ps = ((CraftPlayer) p).getHandle().connection;
             ps.send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, npc));
             ps.send(new ClientboundAddPlayerPacket(npc));
@@ -649,20 +651,22 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
     }
 
-    private void spawnCorpseForPlayer(Player p, UUID deadPerson){
+    private void spawnCorpseForPlayer(Player p, UUID deadPerson) {
         CraftPlayer craftPlayer = (CraftPlayer) p;
         MinecraftServer server = craftPlayer.getHandle().getServer();
         ServerLevel level = craftPlayer.getHandle().getLevel();
 
-        ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor( (String) dbPlayerGet(deadPerson, "username"))));
+        ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor((String) dbPlayerGet(deadPerson, "username"))));
 
         String wname = (String) dbPlayerGet(deadPerson, "deadBodyLocationWorld");
-        Double BX= (Double) dbPlayerGet(deadPerson, "deadBodyLocationX");
-        Double BY= (Double) dbPlayerGet(deadPerson, "deadBodyLocationY");;
-        Double BZ= (Double) dbPlayerGet(deadPerson, "deadBodyLocationz");;
+        Double BX = (Double) dbPlayerGet(deadPerson, "deadBodyLocationX");
+        Double BY = (Double) dbPlayerGet(deadPerson, "deadBodyLocationY");
+        ;
+        Double BZ = (Double) dbPlayerGet(deadPerson, "deadBodyLocationz");
+        ;
         Location deadPersonLocation = new Location(Bukkit.getWorld(wname), BX, BY, BZ);
 
-        npc.setPos(deadPersonLocation.getX(), deadPersonLocation.getWorld().getHighestBlockAt(deadPersonLocation).getY()+1, deadPersonLocation.getZ());
+        npc.setPos(deadPersonLocation.getX(), deadPersonLocation.getWorld().getHighestBlockAt(deadPersonLocation).getY() + 1, deadPersonLocation.getZ());
         npc.setPose(Pose.SLEEPING);
         npc.setCustomNameVisible(false);
 
@@ -673,7 +677,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         //GameProfile gameProfile = ((CraftPlayer) deadPerson).getHandle().getGameProfile();
         //Property property = (Property) gameProfile.getProperties().get("textures").toArray()[0];
-        if(dbPlayerGet(deadPerson, "SkinTexture")!="" && dbPlayerGet(deadPerson, "SkinSignature")!=""){
+        if (dbPlayerGet(deadPerson, "SkinTexture") != "" && dbPlayerGet(deadPerson, "SkinSignature") != "") {
             texture = (String) dbPlayerGet(deadPerson, "SkinTexture");
             signature = (String) dbPlayerGet(deadPerson, "SkinSignature");
         }
@@ -688,9 +692,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         ps.send(new ClientboundSetEntityDataPacket(npc.getId(), npc.getEntityData(), true));
     }
 
-    private void getDeadPlayers(){
+    private void getDeadPlayers() {
         ArrayList<UUID> allJoinedPlayers = new ArrayList<>();
-        for (Player p : Bukkit.getOnlinePlayers()){
+        for (Player p : Bukkit.getOnlinePlayers()) {
             allJoinedPlayers.add(p.getUniqueId());
         }
         FindIterable<Document> iterDoc = players.find();
@@ -698,17 +702,17 @@ public class criticalSMP implements Listener, CommandExecutor {
             allJoinedPlayers.add((UUID) document.get("_id"));
         }
 
-        for(UUID u: allJoinedPlayers){
+        for (UUID u : allJoinedPlayers) {
             Integer pLives = getPlayerLives(u);
-            if(pLives==0){
+            if (pLives == 0) {
                 deadPlsSpawnBody.add(u);
             }
         }
     }
 
-    private ArrayList<UUID> getAllServerPlayers(){
+    private ArrayList<UUID> getAllServerPlayers() {
         ArrayList<UUID> allJoinedPlayers = new ArrayList<>();
-        for (Player p : Bukkit.getOnlinePlayers()){
+        for (Player p : Bukkit.getOnlinePlayers()) {
             allJoinedPlayers.add(p.getUniqueId());
         }
         FindIterable<Document> iterDoc = players.find();
@@ -718,7 +722,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         return allJoinedPlayers;
     }
 
-    private ArrayList<UUID> getAllDadabasePlayers(){
+    private ArrayList<UUID> getAllDadabasePlayers() {
         ArrayList<UUID> allJoinedPlayers = new ArrayList<>();
         FindIterable<Document> iterDoc = players.find();
         for (Document document : iterDoc) {
@@ -739,57 +743,17 @@ public class criticalSMP implements Listener, CommandExecutor {
             player.sendMessage("Gave you 3 life shards");
             return true;
         }
-        if(cmd.getName().equalsIgnoreCase("givelife")){
+        if (cmd.getName().equalsIgnoreCase("givelife")) {
             Bukkit.getPluginManager().callEvent(addLifeEvent);
             addLifeEvent.addLifeToPlayer(player);
             return true;
         }
-        if(cmd.getName().equalsIgnoreCase("takelife")){
+        if (cmd.getName().equalsIgnoreCase("takelife")) {
             Bukkit.getPluginManager().callEvent(removeLifeEvent);
             removeLifeEvent.removeLifeFromPlayer(player);
             return true;
         }
-        if(cmd.getName().equalsIgnoreCase("spawnnpc")){
-            sp(player);
-        }
+
         return true;
-    }
-
-    private void sp(Player p){
-        CraftPlayer craftPlayer = (CraftPlayer) p;
-        MinecraftServer server = craftPlayer.getHandle().getServer();
-        ServerLevel level = craftPlayer.getHandle().getLevel();
-
-        ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor(p.getDisplayName())));
-        npc.setPos(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ());
-        npc.setYHeadRot(asts(p.getLocation().getYaw()));
-
-        // Red Crewmate skin
-        String texture = "ewogICJ0aW1lc3RhbXAiIDogMTYwMDQxNDA0MjAxOSwKICAicHJvZmlsZUlkIiA6ICJlYTk3YThkMTFmNzE0Y2UwYTc2ZDdjNTI1M2NjN2Y3MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJfTXJfS2VrcyIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9iY2UzOTRlM2VlMDc1OWM5YzZiMWZhMmNhMDk0YThlODdhZWExNTMxYWRiMGU4NmM5Zjk1YTgzYzQ0NTI5ZTEwIgogICAgfQogIH0KfQ==";
-        String signature = "oVGXKvwSSfRI0qUR5zXXIzIur4VdckCpiFQIEi/zYy/0XxXHmueHn1FCOP19kvpuCHTzSUxrSasuFtpWV5GDMUKRegYXkEFNOVPNjlkr3UeGqk+bCbVxGXSKkJM78mRCnv1rSDZmI7QOtshh67sS3IGVPRYV9T2IEEH+phXIFewRNjwgYtr7UVWMm74fqfiXirerxIgwGpp+eq8XiJ2DfCfKYaBDCns41FHoX7B5nBVLzqDlQW931e5TgTyDAiu3YWk3ASi9fiawCsTM11fLTJ/VEq9FdOtFXpxCzYUgY5Xy1I0xtRhSEk4LnMe79ffzsXp1noZhy8iKg4nxSLVKBK78dLX8JFj+cMiRkqoGACSJOk4iA4diLhEeRL6jG+clv5Xxv9NfEkM6AGZFwGAlgGWZxcy71ZlzTtFCaTu2LCFxki2B2xNe/JdmPyDEwankv7hcWxon/zCLBukF/aGj2Bzam4b/Bjz6e0vSqElWb8KLTQC46hDAEeqngrDDSaiig7vs5rkgvUmPmyD2qAlI9dXgDcDPmJGlma7jmZiVndDzdDfBlmcIp4o3J2ECMyJYhcY+KWxV20RxAjK71jfLmXOQbRNVX1dZq7uSHlHR/XBjmeP0a+SxHV6fuWsWHvXaBsnLJlRdYrPSnFx+GMwZmYvNty4aS1B2ty7aTfIFLzo=";
-
-
-        GameProfile gameProfile = ((CraftPlayer) p).getHandle().getGameProfile();
-        Property property = (Property) gameProfile.getProperties().get("textures").toArray()[0];
-
-        texture = property.getValue();
-        signature = property.getSignature();
-
-        npc.getGameProfile().getProperties().put("textures", new Property("textures", texture, signature));
-
-        ServerGamePacketListenerImpl ps = ((CraftPlayer) p).getHandle().connection;
-        ps.send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, npc));
-        ps.send(new ClientboundAddPlayerPacket(npc));
-        ps.send(new ClientboundSetEntityDataPacket(npc.getId(), npc.getEntityData(), true));
-    }
-
-    public float asts(float yaw){
-        while (yaw < -180.0F) {
-            yaw += 360.0F;
-        }
-        while (yaw >= 180.0F) {
-            yaw -= 360.0F;
-        }
-        return yaw;
     }
 }

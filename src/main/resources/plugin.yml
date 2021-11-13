@@ -16,5 +16,3 @@ commands:
   takelife:
     usage: /takelife
     description: hi
-  spawnnpc:
-    description: hi

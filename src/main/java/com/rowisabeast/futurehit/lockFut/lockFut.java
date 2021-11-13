@@ -10,17 +10,23 @@ public class lockFut {
     }
 
     public void lock(){
-        System.out.println("Locked!");
+        if(debug){
+            System.out.println("Locked!");
+        }
         programLock = true;
     }
 
     public void unlock(){
-        System.out.println("Unlocked!");
+        if(debug){
+            System.out.println("Unlocked!");
+        }
         programLock = false;
     }
 
     public boolean tryLock(){
-        System.out.println("Try lock! "+programLock);
+        if(debug){
+            System.out.println("Try lock! "+programLock);
+        }
         return programLock;
     }
 
