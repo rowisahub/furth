@@ -51,11 +51,13 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     public static Futurehit plugin;
 
+    boolean debug = false;
+
     public MongoCollection<Document> players;
     public MongoCollection<Document> serverDatabase;
 
     //private final ReentrantLock lock = new ReentrantLock();
-    private final lockFut lock = new lockFut(true);
+    private final lockFut lock = new lockFut(debug);
 
     public ArrayList<UUID> deadPlsSpawnBody = new ArrayList<>();
 
@@ -67,8 +69,6 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     GiveLifeEvent addLifeEvent;
     RemoveLifeEvent removeLifeEvent;
-
-    boolean debug = true;
 
     public criticalSMP(Futurehit plugin){
         criticalSMP.plugin = plugin;
@@ -761,7 +761,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         ServerLevel level = craftPlayer.getHandle().getLevel();
 
         ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor(p.getDisplayName())));
-        npc.teleportTo(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ());
+        npc.setPos(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ());
         npc.setYHeadRot(asts(p.getLocation().getYaw()));
 
         // Red Crewmate skin
