@@ -24,6 +24,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -87,6 +89,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         plugin.getCommand("givelifeshard").setExecutor(this);
         plugin.getCommand("givelife").setExecutor(this);
         plugin.getCommand("takelife").setExecutor(this);
+        plugin.getCommand("spawnnpc").setExecutor(this);
 
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
@@ -604,6 +607,13 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor(deadPerson.getDisplayName())));
 
+
+        //npc.setYHeadRot(deadPerson.getLocation().getDirection().angle(deadPerson.getLocation().getDirection()));
+
+
+
+
+
         npc.setPos(deadPerson.getLocation().getX(), deadPerson.getLocation().getWorld().getHighestBlockAt(deadPerson.getLocation()).getY()+1, deadPerson.getLocation().getZ());
         npc.setPose(Pose.SLEEPING);
         npc.setCustomNameVisible(false);
@@ -739,6 +749,47 @@ public class criticalSMP implements Listener, CommandExecutor {
             removeLifeEvent.removeLifeFromPlayer(player);
             return true;
         }
+        if(cmd.getName().equalsIgnoreCase("spawnnpc")){
+            sp(player);
+        }
         return true;
+    }
+
+    private void sp(Player p){
+        CraftPlayer craftPlayer = (CraftPlayer) p;
+        MinecraftServer server = craftPlayer.getHandle().getServer();
+        ServerLevel level = craftPlayer.getHandle().getLevel();
+
+        ServerPlayer npc = new ServerPlayer(server, level, new GameProfile(UUID.randomUUID(), ChatColor.stripColor(p.getDisplayName())));
+        npc.teleportTo(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ());
+        npc.setYHeadRot(asts(p.getLocation().getYaw()));
+
+        // Red Crewmate skin
+        String texture = "ewogICJ0aW1lc3RhbXAiIDogMTYwMDQxNDA0MjAxOSwKICAicHJvZmlsZUlkIiA6ICJlYTk3YThkMTFmNzE0Y2UwYTc2ZDdjNTI1M2NjN2Y3MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJfTXJfS2VrcyIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9iY2UzOTRlM2VlMDc1OWM5YzZiMWZhMmNhMDk0YThlODdhZWExNTMxYWRiMGU4NmM5Zjk1YTgzYzQ0NTI5ZTEwIgogICAgfQogIH0KfQ==";
+        String signature = "oVGXKvwSSfRI0qUR5zXXIzIur4VdckCpiFQIEi/zYy/0XxXHmueHn1FCOP19kvpuCHTzSUxrSasuFtpWV5GDMUKRegYXkEFNOVPNjlkr3UeGqk+bCbVxGXSKkJM78mRCnv1rSDZmI7QOtshh67sS3IGVPRYV9T2IEEH+phXIFewRNjwgYtr7UVWMm74fqfiXirerxIgwGpp+eq8XiJ2DfCfKYaBDCns41FHoX7B5nBVLzqDlQW931e5TgTyDAiu3YWk3ASi9fiawCsTM11fLTJ/VEq9FdOtFXpxCzYUgY5Xy1I0xtRhSEk4LnMe79ffzsXp1noZhy8iKg4nxSLVKBK78dLX8JFj+cMiRkqoGACSJOk4iA4diLhEeRL6jG+clv5Xxv9NfEkM6AGZFwGAlgGWZxcy71ZlzTtFCaTu2LCFxki2B2xNe/JdmPyDEwankv7hcWxon/zCLBukF/aGj2Bzam4b/Bjz6e0vSqElWb8KLTQC46hDAEeqngrDDSaiig7vs5rkgvUmPmyD2qAlI9dXgDcDPmJGlma7jmZiVndDzdDfBlmcIp4o3J2ECMyJYhcY+KWxV20RxAjK71jfLmXOQbRNVX1dZq7uSHlHR/XBjmeP0a+SxHV6fuWsWHvXaBsnLJlRdYrPSnFx+GMwZmYvNty4aS1B2ty7aTfIFLzo=";
+
+
+        GameProfile gameProfile = ((CraftPlayer) p).getHandle().getGameProfile();
+        Property property = (Property) gameProfile.getProperties().get("textures").toArray()[0];
+
+        texture = property.getValue();
+        signature = property.getSignature();
+
+        npc.getGameProfile().getProperties().put("textures", new Property("textures", texture, signature));
+
+        ServerGamePacketListenerImpl ps = ((CraftPlayer) p).getHandle().connection;
+        ps.send(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, npc));
+        ps.send(new ClientboundAddPlayerPacket(npc));
+        ps.send(new ClientboundSetEntityDataPacket(npc.getId(), npc.getEntityData(), true));
+    }
+
+    public float asts(float yaw){
+        while (yaw < -180.0F) {
+            yaw += 360.0F;
+        }
+        while (yaw >= 180.0F) {
+            yaw -= 360.0F;
+        }
+        return yaw;
     }
 }
