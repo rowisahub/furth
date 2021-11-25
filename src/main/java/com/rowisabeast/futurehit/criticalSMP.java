@@ -329,11 +329,11 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     public void editPlayerScoreBoard(Player p, String Original, String text, Integer score) {
-        if (score == 10 || score == 1) return;
+        //if (score == 10 || score == 1) return;
         //obj.getScoreboard().resetScores("│ "+Original);
         //obj.getScore("│ "+text).setScore(score);
-        playerScoreboard.get(p.getUniqueId()).resetScores("│ " + Original);
-        playerObjective.get(p.getUniqueId()).getScore("│ " + text).setScore(score);
+        //playerScoreboard.get(p.getUniqueId()).resetScores("│ " + Original);
+        //playerObjective.get(p.getUniqueId()).getScore("│ " + text).setScore(score);
     }
 
     public void setPlayerTabNameWithLives(Player p) {
@@ -447,7 +447,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     private Object dbServerGet(String key) {
-        Document Db = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
+        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
         return Db.get(key);
     }
 
