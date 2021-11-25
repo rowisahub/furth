@@ -442,7 +442,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     private Integer getCurrentBountyTimeRemaining() {
-        Document Db = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
+        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
         return (int) Db.get("nextBountyTimeRemaining");
     }
 

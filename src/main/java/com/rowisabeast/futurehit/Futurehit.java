@@ -36,7 +36,7 @@ public final class Futurehit extends JavaPlugin {
 
         getLogger().info("Plugin enabled!");
         // Create config
-        //createConfig();
+        createConfig();
 
         // Connect to Database
         //((LoggerContext) LoggerFactory.getILoggerFactory()).getLogger("org.mongodb.driver").setLevel(Level.ERROR); // only show ERROR in mongoDB // https://stackoverflow.com/questions/30137564/how-to-disable-mongodb-java-driver-logging
@@ -47,19 +47,19 @@ public final class Futurehit extends JavaPlugin {
         critical = new criticalSMP(this);
     }
 
-    //private void createConfig(){
-    //    data = new File(getDataFolder() + File.separator + "config.yml");
-    //    if(!data.exists()){
-    //        getLogger().info(ChatColor.LIGHT_PURPLE + "Creating file config.yml");
-    //        this.saveResource("config.yml", false);
-    //    }
-    //    serverData = new YamlConfiguration();
-    //    try {
-    //        serverData.load(data);
-    //    } catch (IOException | InvalidConfigurationException e){
-    //        e.printStackTrace();
-    //    }
-    //}
+    private void createConfig(){
+        data = new File(getDataFolder() + File.separator + "config.yml");
+        if(!data.exists()){
+            getLogger().info(ChatColor.LIGHT_PURPLE + "Creating file config.yml");
+            this.saveResource("config.yml", false);
+        }
+        serverData = new YamlConfiguration();
+        try {
+            serverData.load(data);
+        } catch (IOException | InvalidConfigurationException e){
+            e.printStackTrace();
+        }
+    }
 
     private static void connectToDataBase(){
         MongoClientSettings clientSettings = MongoClientSettings.builder()
