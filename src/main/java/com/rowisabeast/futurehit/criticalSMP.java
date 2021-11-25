@@ -201,8 +201,10 @@ public class criticalSMP implements Listener, CommandExecutor {
         dbPlayerEdit(player, "SkinTexture", texture);
         dbPlayerEdit(player, "SkinSignature", signature);
 
-
-        player.sendTitle("", ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString()+ChatColor.RED+" is the bounty! BEWARE!!", 1, 20, 10);
+        if (Bukkit.getOnlinePlayers().size() < 2) {
+            return;
+        }
+        player.sendTitle(ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString(), ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString()+ChatColor.RED+" is the bounty! BEWARE!!", 1, 20, 10);
     }
 
     @EventHandler
@@ -535,7 +537,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
 
         for(Player player : Bukkit.getOnlinePlayers()){
-            player.sendTitle("", ChatColor.LIGHT_PURPLE+pickedPlayer.getName()+ChatColor.RED+" is the new bounty! BEWARE!!", 1, 40, 10);
+            player.sendTitle(ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString(), ChatColor.LIGHT_PURPLE+pickedPlayer.getName()+ChatColor.RED+" is the new bounty! BEWARE!!", 1, 40, 10);
         }
 
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
