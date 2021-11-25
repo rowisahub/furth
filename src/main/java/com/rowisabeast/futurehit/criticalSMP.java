@@ -421,7 +421,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         Document ts = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
         if (ts == null || ts.size() == 0) {
             serverDatabase.insertOne(new Document()
-                    .append("_id", plugin.serverData.getInt("ID"))
+                    .append("_id", "CriticalSMP")
                     .append("nextBountyTimeRemaining", 0)
                     .append("defaultNextBountyTimeTick", 6000) // 360000
                     .append("isBountyTimerUp", false)
