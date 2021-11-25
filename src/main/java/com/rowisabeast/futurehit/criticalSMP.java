@@ -418,7 +418,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     //Set and get Server Database
     private void getServerDB() {
-        Document ts = serverDatabase.find(new Document("_id", plugin.serverData.getInt("ID"))).first();
+        Document ts = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
         if (ts == null || ts.size() == 0) {
             serverDatabase.insertOne(new Document()
                     .append("_id", "CriticalSMP")
