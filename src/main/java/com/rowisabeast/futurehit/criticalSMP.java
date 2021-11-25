@@ -523,6 +523,10 @@ public class criticalSMP implements Listener, CommandExecutor {
             editPlayerScoreBoard(olp, "Current Bounty: " + lastpNAME, "Current Bounty: " + pickedPlayer.getName(), 6);
         }
 
+        for(Player player : Bukkit.getOnlinePlayers()){
+            player.sendTitle(ChatColor.LIGHT_PURPLE+player.getName()+ChatColor.RED+" is the new bounty! BEWARE!!", "", 1, 40, 10);
+        }
+
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
         dbServerEdit("currentBountyName", pickedPlayer.getName());
         dbPlayerEdit(pickedPlayer, "isBounty", true);

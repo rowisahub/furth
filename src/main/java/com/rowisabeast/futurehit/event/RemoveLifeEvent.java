@@ -69,7 +69,7 @@ public class RemoveLifeEvent extends Event implements Cancellable {
         for (Player pl : Bukkit.getOnlinePlayers()){
             if(p.equals(pl)) return;
             //pl.sendMessage(ChatColor.LIGHT_PURPLE+p.getName()+ChatColor.RED+" has gained a LIFE, beware!");
-            pl.sendTitle(ChatColor.LIGHT_PURPLE+p.getName()+ChatColor.RED+" has lost a LIFE, beware!", "", 1, 20, 1);
+            pl.sendTitle(ChatColor.LIGHT_PURPLE+p.getName()+ChatColor.RED+" as the bounty has died, waiting for new bounty!", "", 1, 20, 1);
         }
     }
 
