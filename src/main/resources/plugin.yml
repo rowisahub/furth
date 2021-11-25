@@ -7,14 +7,6 @@ description: Custom Plugin for Futurehit
 website: https://rowisabeast.com
 
 commands:
-  givelifeshard:
-    usage: /givelifeshard
-    description: Get 3 live shards
-  givelife:
-    usage: /givelife
-    description: hi
-  takelife:
-    usage: /takelife
-    description: hi
-  spawnnpc:
-    description: hi
+  bdussy:
+    usage: /bdussy
+    description: start prodection time

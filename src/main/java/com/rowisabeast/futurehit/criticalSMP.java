@@ -45,7 +45,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class criticalSMP implements Listener, CommandExecutor {
@@ -87,10 +89,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         //Get player body
         getDeadPlayers();
 
-        plugin.getCommand("givelifeshard").setExecutor(this);
-        plugin.getCommand("givelife").setExecutor(this);
-        plugin.getCommand("takelife").setExecutor(this);
-        plugin.getCommand("spawnnpc").setExecutor(this);
+        plugin.getCommand("bdussy").setExecutor(this);
 
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
@@ -178,7 +177,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         plugin.getLogger().info("Player `" + player.getName() + "`has `" + playerLives.toString() + "` live(s)");
 
-        createBoardList(player); // Sidebar
+        //createBoardList(player); // Sidebar
         setPlayerTabNameWithLives(player); // Tablist
 
         //Spawn all dead body's for player
@@ -264,6 +263,15 @@ public class criticalSMP implements Listener, CommandExecutor {
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent e) {
         if (e.getEntity() instanceof Player && e.getDamager() instanceof Player) {
+
+            if(plugin.serverData.getInt("endFreeTime")!=0){
+                if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+                    e.setCancelled(true);
+                    Bukkit.getPlayer(e.getDamager().getUniqueId()).sendMessage("You can't hurt another player while the the 12hour protection time is active!");
+                    return;
+                }
+            }
+
             Player player = Bukkit.getPlayer(e.getEntity().getUniqueId());
             Player damager = Bukkit.getPlayer(e.getDamager().getUniqueId());
             if ((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")) {
@@ -539,6 +547,13 @@ public class criticalSMP implements Listener, CommandExecutor {
         if (debug) {
             plugin.getLogger().warning("tick isn't locked, locking and running code");
         }
+
+        if(plugin.serverData.getInt("endFreeTime")!=0){
+            if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+                lock.unlock();
+                return;
+            }
+        }
 //
 
         // Every runnable tick
@@ -742,23 +757,20 @@ public class criticalSMP implements Listener, CommandExecutor {
             return true;
         }
         Player player = (Player) sender;
-        if (cmd.getName().equalsIgnoreCase("givelifeshard")) {
+        if (cmd.getName().equalsIgnoreCase("bdussy")) {
             player.getInventory().addItem(life_Shard, life_Shard, life_Shard);
             player.sendMessage("Gave you 3 life shards");
+            if(player.isOp()){
+                long s = System.currentTimeMillis()+TimeUnit.HOURS.toMillis(12);
+                plugin.serverData.set("endFreeTime", s);
+                try {
+                    plugin.serverData.save(plugin.data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
             return true;
-        }
-        if (cmd.getName().equalsIgnoreCase("givelife")) {
-            Bukkit.getPluginManager().callEvent(addLifeEvent);
-            addLifeEvent.addLifeToPlayer(player);
-            return true;
-        }
-        if (cmd.getName().equalsIgnoreCase("takelife")) {
-            Bukkit.getPluginManager().callEvent(removeLifeEvent);
-            removeLifeEvent.removeLifeFromPlayer(player);
-            return true;
-        }
-        if(cmd.getName().equalsIgnoreCase("spawnnpc")){
-            sp(player);
         }
         return true;
     }

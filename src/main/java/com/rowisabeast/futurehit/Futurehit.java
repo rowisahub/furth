@@ -37,9 +37,6 @@ public final class Futurehit extends JavaPlugin {
         getLogger().info("Plugin enabled!");
         // Create config
         createConfig();
-        if(serverData.getInt("ID")==0){
-            serverData.set("ID", new RandomString(5));
-        }
 
         // Connect to Database
         //((LoggerContext) LoggerFactory.getILoggerFactory()).getLogger("org.mongodb.driver").setLevel(Level.ERROR); // only show ERROR in mongoDB // https://stackoverflow.com/questions/30137564/how-to-disable-mongodb-java-driver-logging
