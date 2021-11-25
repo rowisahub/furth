@@ -202,6 +202,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         dbPlayerEdit(player, "SkinSignature", signature);
 
 
+        player.sendTitle("", ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString()+ChatColor.RED+" is the bounty! BEWARE!!", 1, 20, 10);
     }
 
     @EventHandler
@@ -212,6 +213,11 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
+        if(plugin.serverData.getInt("endFreeTime")!=0){
+            if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+                return;
+            }
+        }
         Player killedPlayer = e.getEntity();
         dbPlayerEdit(killedPlayer, "isAlive", false);
         if (isPlayerBounty(killedPlayer.getUniqueId())) {
@@ -250,6 +256,11 @@ public class criticalSMP implements Listener, CommandExecutor {
             }
         } else {
             // Player isn't bounty
+            if(plugin.serverData.getInt("endFreeTime")!=0){
+                if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+                    return;
+                }
+            }
             if (killedPlayer.getKiller() != null) {
                 Player Killer = e.getEntity().getKiller();
                 if (isPlayerBounty(Killer.getUniqueId())) {
@@ -524,7 +535,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
 
         for(Player player : Bukkit.getOnlinePlayers()){
-            player.sendTitle(ChatColor.LIGHT_PURPLE+player.getName()+ChatColor.RED+" is the new bounty! BEWARE!!", "", 1, 40, 10);
+            player.sendTitle("", ChatColor.LIGHT_PURPLE+pickedPlayer.getName()+ChatColor.RED+" is the new bounty! BEWARE!!", 1, 40, 10);
         }
 
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
