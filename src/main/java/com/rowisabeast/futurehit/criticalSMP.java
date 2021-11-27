@@ -33,10 +33,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
@@ -312,6 +309,24 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
     }
 
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent e){
+        if(dbServerGet("currentBountyUUID")!=null || dbServerGet("currentBountyUUID")!=""){
+
+            UUID bountyUUID = (UUID) dbServerGet("currentBountyUUID");
+
+            if(Bukkit.getPlayer(bountyUUID)==null) return;
+
+            Player p = Bukkit.getPlayer(bountyUUID);
+
+            if(e.getPlayer() == p) {
+                for (Player allplayers : Bukkit.getOnlinePlayers()) {
+                    allplayers.setCompassTarget(p.getLocation());
+                }
+            }
+        }
+    }
+
     //public Objective obj;
     public void createBoardList(Player p) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -538,6 +553,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         for(Player player : Bukkit.getOnlinePlayers()){
             player.sendTitle(ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString(), ChatColor.LIGHT_PURPLE+pickedPlayer.getName()+ChatColor.RED+" is the new bounty! BEWARE!!", 1, 40, 10);
+            player.setCompassTarget(pickedPlayer.getLocation());
         }
 
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
