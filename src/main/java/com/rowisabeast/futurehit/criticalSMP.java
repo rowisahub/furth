@@ -608,8 +608,15 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         // Saving Player Data Now!
         for(Player p : Bukkit.getOnlinePlayers()){
-            playerClass pc = playerDBLocal.get(p.getUniqueId());
-            players.updateOne(Filters.eq("_id", p.getUniqueId()), pc.PlayerDBLocal);
+            UUID uuid = p.getUniqueId();
+            Document Db = players.find(new Document("_id", uuid)).first();
+            ArrayList<Bson> ValUpdates = new ArrayList<>();
+            for(Map.Entry<String, Object> pla : Db.entrySet()){
+                if(pla.getKey()==null || pla.getValue()==null) continue;
+                ValUpdates.add(Updates.set(pla.getKey(), pla.getValue()));
+            }
+            players.updateMany(Filters.eq("_id", uuid), ValUpdates);
+
             p.sendMessage(ChatColor.GREEN+"Saved!");
         }
     }
@@ -620,8 +627,15 @@ public class criticalSMP implements Listener, CommandExecutor {
     //    }
     //}
     private void playerLeaveDB(UUID uuid){
-        playerClass pc = playerDBLocal.get(uuid);
-        players.updateOne(Filters.eq("_id", uuid), pc.PlayerDBLocal);
+        Document Db = players.find(new Document("_id", uuid)).first();
+        ArrayList<Bson> ValUpdate = new ArrayList<>();
+        for(Map.Entry<String, Object> pla : Db.entrySet()){
+            if(pla.getKey()==null || pla.getValue()==null) continue;
+            ValUpdate.add(Updates.set(pla.getKey(), pla.getValue()));
+        }
+        players.updateMany(Filters.eq("_id", uuid), ValUpdate);
+
+        //players.updateOne(Filters.eq("_id", uuid), pc.PlayerDBLocal);
     }
 
     private Integer getCurrentBountyTimeRemaining() {
