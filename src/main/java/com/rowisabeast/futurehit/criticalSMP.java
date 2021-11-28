@@ -515,6 +515,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     public Document getPLayerFromDB(UUID uuid) { // WORKS
+        if(playerDBLocal.get(uuid)==null) return null;
         return playerDBLocal.get(uuid).PlayerDBLocal;
     }
 
