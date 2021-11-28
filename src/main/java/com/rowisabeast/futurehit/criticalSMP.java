@@ -471,45 +471,71 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         // local and main database havn't been set, New Player
 
-        players.insertOne(new Document() // New Database entry
-                .append("_id", uuid)
-                .append("uuid", uuid)
-                .append("username", pl.getName())
-                .append("lives", 5)
-                .append("numberOfTimesPlayerHasKilledBounty", 0)
-                .append("numberOfTImesPlayerHasDiedAsBounty", 0)
-                .append("ifKilledByBounty", false)
-                .append("connectionInformationHost", pl.getAddress().getHostString())
-                .append("connectionInformationPort", pl.getAddress().getPort())
-                .append("isOnline", true)
-                .append("isBounty", false)
-                .append("isNextBounty", false)
-                .append("deadBodyLocationWorld", "")
-                .append("deadBodyLocationX", 0.0)
-                .append("deadBodyLocationY", 0.0)
-                .append("deadBodyLocationz", 0.0)
-                .append("SkinTexture", "")
-                .append("SkinSignature", "")
-                .append("isAlive", true));
+        if(playerDBLocal.get(uuid)==null && Db==null) {
+            players.insertOne(new Document() // New Database entry
+                    .append("_id", uuid)
+                    .append("uuid", uuid)
+                    .append("username", pl.getName())
+                    .append("lives", 5)
+                    .append("numberOfTimesPlayerHasKilledBounty", 0)
+                    .append("numberOfTImesPlayerHasDiedAsBounty", 0)
+                    .append("ifKilledByBounty", false)
+                    .append("connectionInformationHost", pl.getAddress().getHostString())
+                    .append("connectionInformationPort", pl.getAddress().getPort())
+                    .append("isOnline", true)
+                    .append("isBounty", false)
+                    .append("isNextBounty", false)
+                    .append("deadBodyLocationWorld", "")
+                    .append("deadBodyLocationX", 0.0)
+                    .append("deadBodyLocationY", 0.0)
+                    .append("deadBodyLocationz", 0.0)
+                    .append("SkinTexture", "")
+                    .append("SkinSignature", "")
+                    .append("isAlive", true));
+            playerClass pc = new playerClass( // New Local DB entry
+                    uuid,
+                    pl.getName(),
+                    (int) Db.get("lives"),
+                    (int) Db.get("numberOfTimesPlayerHasKilledBounty"),
+                    (int) Db.get("numberOfTImesPlayerHasDiedAsBounty"),
+                    (boolean) Db.get("ifKilledByBounty"),
+                    (String) Db.get("connectionInformationHost"),
+                    (String) Db.get("connectionInformationPort"),
+                    (boolean) Db.get("isOnline"),
+                    (boolean) Db.get("isBounty"),
+                    (boolean) Db.get("isNextBounty"),
+                    (String) Db.get("deadBodyLocationWorld"),
+                    (double) Db.get("deadBodyLocationX"),
+                    (double) Db.get("deadBodyLocationY"),
+                    (double) Db.get("deadBodyLocationz"),
+                    (String) Db.get("SkinTexture"),
+                    (String) Db.get("SkinSignature"),
+                    (boolean) Db.get("isAlive")
+            );
+            playerDBLocal.put(uuid, pc);
+            return;
+        }
+
+        // just in case it doesn't match the others
         playerClass pc = new playerClass( // New Local DB entry
                 uuid,
                 pl.getName(),
-                (int)Db.get("lives"),
-                (int)Db.get("numberOfTimesPlayerHasKilledBounty"),
-                (int)Db.get("numberOfTImesPlayerHasDiedAsBounty"),
-                (boolean)Db.get("ifKilledByBounty"),
-                (String)Db.get("connectionInformationHost"),
-                (String)Db.get("connectionInformationPort"),
-                (boolean)Db.get("isOnline"),
-                (boolean)Db.get("isBounty"),
-                (boolean)Db.get("isNextBounty"),
-                (String)Db.get("deadBodyLocationWorld"),
-                (double)Db.get("deadBodyLocationX"),
-                (double)Db.get("deadBodyLocationY"),
-                (double)Db.get("deadBodyLocationz"),
-                (String)Db.get("SkinTexture"),
-                (String)Db.get("SkinSignature"),
-                (boolean)Db.get("isAlive")
+                (int) Db.get("lives"),
+                (int) Db.get("numberOfTimesPlayerHasKilledBounty"),
+                (int) Db.get("numberOfTImesPlayerHasDiedAsBounty"),
+                (boolean) Db.get("ifKilledByBounty"),
+                (String) Db.get("connectionInformationHost"),
+                (String) Db.get("connectionInformationPort"),
+                (boolean) Db.get("isOnline"),
+                (boolean) Db.get("isBounty"),
+                (boolean) Db.get("isNextBounty"),
+                (String) Db.get("deadBodyLocationWorld"),
+                (double) Db.get("deadBodyLocationX"),
+                (double) Db.get("deadBodyLocationY"),
+                (double) Db.get("deadBodyLocationz"),
+                (String) Db.get("SkinTexture"),
+                (String) Db.get("SkinSignature"),
+                (boolean) Db.get("isAlive")
         );
         playerDBLocal.put(uuid, pc);
     }
