@@ -16,7 +16,7 @@ public class playerClass {
             int numberOfTImesPlayerHasDiedAsBountys,
             boolean ifKilledByBountys,
             String connectionInformationHosts,
-            String connectionInformationPorts,
+            int connectionInformationPorts,
             boolean isOnlines,
             boolean isBountys,
             boolean isNextBountys,
