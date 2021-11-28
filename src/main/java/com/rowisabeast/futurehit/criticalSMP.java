@@ -88,7 +88,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         makeNewRecipes();
 
         //Get player body
-        getDeadPlayers();
+        //getDeadPlayers();
 
         plugin.getCommand("bdussy").setExecutor(this);
         plugin.getCommand("donate").setExecutor(this);
