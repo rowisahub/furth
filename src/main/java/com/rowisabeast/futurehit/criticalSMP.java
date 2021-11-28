@@ -9,6 +9,7 @@ import com.mongodb.client.model.Updates;
 import com.rowisabeast.futurehit.event.GiveLifeEvent;
 import com.rowisabeast.futurehit.event.RemoveLifeEvent;
 import com.rowisabeast.futurehit.lockFut.lockFut;
+import com.rowisabeast.futurehit.playerClass.playerClass;
 import net.minecraft.network.protocol.game.ClientboundAddPlayerPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoPacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
@@ -59,13 +60,16 @@ public class criticalSMP implements Listener, CommandExecutor {
     //private final ReentrantLock lock = new ReentrantLock();
     private final lockFut lock = new lockFut(debug);
 
-    public ArrayList<UUID> deadPlsSpawnBody = new ArrayList<>();
+    public ArrayList<UUID> deadPlsSpawnBody = new ArrayList<UUID>();
 
     public ItemStack life_Shard;
     public ItemStack life;
 
-    public HashMap<UUID, Scoreboard> playerScoreboard = new HashMap<>();
-    public HashMap<UUID, Objective> playerObjective = new HashMap<>();
+    public HashMap<UUID, Scoreboard> playerScoreboard = new HashMap<UUID, Scoreboard>();
+    public HashMap<UUID, Objective> playerObjective = new HashMap<UUID, Objective>();
+
+    public HashMap<String, Object> serverDBLocal = new HashMap<String, Object>();
+    public HashMap<UUID, playerClass> playerDBLocal = new HashMap<UUID, playerClass>();
 
     GiveLifeEvent addLifeEvent;
     RemoveLifeEvent removeLifeEvent;
@@ -87,6 +91,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         getDeadPlayers();
 
         plugin.getCommand("bdussy").setExecutor(this);
+        plugin.getCommand("donate").setExecutor(this);
 
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
@@ -96,8 +101,17 @@ public class criticalSMP implements Listener, CommandExecutor {
                                 plugin,
                                 this::tick,
                                 0,
-                                1
+                                5
                         ),
+                0
+        );
+        Bukkit.getScheduler().runTaskLater(plugin, () ->
+                Bukkit.getScheduler().runTaskTimerAsynchronously(
+                        plugin,
+                        this::backupServerDB,
+                        2400,
+                        2400
+                ),
                 0
         );
     }
@@ -166,13 +180,16 @@ public class criticalSMP implements Listener, CommandExecutor {
     public void onPlayerJoin(PlayerJoinEvent event) {
         // PLayer joined
         Player player = event.getPlayer();
+
+        playerjoin(player.getUniqueId());
+
         //plugin.getLogger().info(getPLayerLives(player.getUniqueId()).toString());
         Integer playerLives = getPlayerLives(player.getUniqueId());//works
 
         dbPlayerEdit(event.getPlayer(), "isOnline", true);
         dbServerEdit("numberOfPlayersOnline", (int) dbServerGet("numberOfPlayersOnline") + 1);
 
-        plugin.getLogger().info("Player `" + player.getName() + "`has `" + playerLives.toString() + "` live(s)");
+        //plugin.getLogger().info("Player `" + player.getName() + "`has `" + playerLives.toString() + "` live(s)");
 
         //createBoardList(player); // Sidebar
         setPlayerTabNameWithLives(player); // Tablist
@@ -208,6 +225,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     public void onPlayerQuit(PlayerQuitEvent event) {
         dbPlayerEdit(event.getPlayer(), "isOnline", false);
         dbServerEdit("numberOfPlayersOnline", (int) dbServerGet("numberOfPlayersOnline") - 1);
+        playerLeaveDB(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -399,49 +417,105 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     public void dbPlayerEdit(Player pl, String key, Object valueToUpdate) {
         UUID uuid = pl.getUniqueId();
-        players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
+        //players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
+        playerDBLocal.get(uuid).PlayerDBLocal.put(key, valueToUpdate);
     }
 
     public void dpPlayerUUIDEdit(UUID uuid, String key, Object valueToUpdate) {
-        players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
+        //players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
+        playerDBLocal.get(uuid).PlayerDBLocal.put(key, valueToUpdate);
     }
 
     public void dbServerEdit(String key, Object valueToUpdate) {
-        serverDatabase.updateOne(Filters.eq("_id", "CriticalSMP"), Updates.set(key, valueToUpdate));
+        //serverDatabase.updateOne(Filters.eq("_id", "CriticalSMP"), Updates.set(key, valueToUpdate));
+        serverDBLocal.put(key, valueToUpdate);
     }
 
     public Integer getPlayerLives(UUID uuid) {
-        Player pl = Bukkit.getPlayer(uuid);
         Document Db = getPLayerFromDB(uuid);
-        if (Db == null || Db.size() == 0) {
-            players.insertOne(new Document()
-                    .append("_id", uuid)
-                    .append("uuid", uuid)
-                    .append("username", pl.getName())
-                    .append("lives", 5)
-                    .append("numberOfTimesPlayerHasKilledBounty", 0)
-                    .append("numberOfTImesPlayerHasDiedAsBounty", 0)
-                    .append("ifKilledByBounty", false)
-                    .append("connectionInformationHost", pl.getAddress().getHostString())
-                    .append("connectionInformationPort", pl.getAddress().getPort())
-                    .append("isOnline", true)
-                    .append("isBounty", false)
-                    .append("isNextBounty", false)
-                    .append("deadBodyLocationWorld", "")
-                    .append("deadBodyLocationX", 0.0)
-                    .append("deadBodyLocationY", 0.0)
-                    .append("deadBodyLocationz", 0.0)
-                    .append("SkinTexture", "")
-                    .append("SkinSignature", "")
-                    .append("isAlive", true));
-            return 3;
-        } else {
-            return (int) Db.get("lives");
+        return (int) Db.get("lives");
+    }
+
+    private void playerjoin(UUID uuid){
+        // playerDBLocal
+        Player pl = Bukkit.getPlayer(uuid);
+        if(playerDBLocal.get(uuid)!=null){ // if player is already in the local system, then we're good
+            return;
         }
+
+        Document Db = getPLayerFromDB(uuid);
+
+        if(playerDBLocal.get(uuid)==null && Db!=null){ // if player isn't in the local db but has played befor add them to the local
+            playerClass pc = new playerClass(
+                    uuid,
+                    pl.getName(),
+                    (int)Db.get("lives"),
+                    (int)Db.get("numberOfTimesPlayerHasKilledBounty"),
+                    (int)Db.get("numberOfTImesPlayerHasDiedAsBounty"),
+                    (boolean)Db.get("ifKilledByBounty"),
+                    (String)Db.get("connectionInformationHost"),
+                    (String)Db.get("connectionInformationPort"),
+                    (boolean)Db.get("isOnline"),
+                    (boolean)Db.get("isBounty"),
+                    (boolean)Db.get("isNextBounty"),
+                    (String)Db.get("deadBodyLocationWorld"),
+                    (double)Db.get("deadBodyLocationX"),
+                    (double)Db.get("deadBodyLocationY"),
+                    (double)Db.get("deadBodyLocationz"),
+                    (String)Db.get("SkinTexture"),
+                    (String)Db.get("SkinSignature"),
+                    (boolean)Db.get("isAlive")
+            );
+            playerDBLocal.put(uuid, pc);
+            return;
+        }
+        // local and main database havn't been set, New Player
+
+        players.insertOne(new Document() // New Database entry
+                .append("_id", uuid)
+                .append("uuid", uuid)
+                .append("username", pl.getName())
+                .append("lives", 5)
+                .append("numberOfTimesPlayerHasKilledBounty", 0)
+                .append("numberOfTImesPlayerHasDiedAsBounty", 0)
+                .append("ifKilledByBounty", false)
+                .append("connectionInformationHost", pl.getAddress().getHostString())
+                .append("connectionInformationPort", pl.getAddress().getPort())
+                .append("isOnline", true)
+                .append("isBounty", false)
+                .append("isNextBounty", false)
+                .append("deadBodyLocationWorld", "")
+                .append("deadBodyLocationX", 0.0)
+                .append("deadBodyLocationY", 0.0)
+                .append("deadBodyLocationz", 0.0)
+                .append("SkinTexture", "")
+                .append("SkinSignature", "")
+                .append("isAlive", true));
+        playerClass pc = new playerClass( // New Local DB entry
+                uuid,
+                pl.getName(),
+                (int)Db.get("lives"),
+                (int)Db.get("numberOfTimesPlayerHasKilledBounty"),
+                (int)Db.get("numberOfTImesPlayerHasDiedAsBounty"),
+                (boolean)Db.get("ifKilledByBounty"),
+                (String)Db.get("connectionInformationHost"),
+                (String)Db.get("connectionInformationPort"),
+                (boolean)Db.get("isOnline"),
+                (boolean)Db.get("isBounty"),
+                (boolean)Db.get("isNextBounty"),
+                (String)Db.get("deadBodyLocationWorld"),
+                (double)Db.get("deadBodyLocationX"),
+                (double)Db.get("deadBodyLocationY"),
+                (double)Db.get("deadBodyLocationz"),
+                (String)Db.get("SkinTexture"),
+                (String)Db.get("SkinSignature"),
+                (boolean)Db.get("isAlive")
+        );
+        playerDBLocal.put(uuid, pc);
     }
 
     public Document getPLayerFromDB(UUID uuid) { // WORKS
-        return players.find(new Document("_id", uuid)).first();
+        return playerDBLocal.get(uuid).PlayerDBLocal;
     }
 
     //Set and get Server Database
@@ -467,28 +541,78 @@ public class criticalSMP implements Listener, CommandExecutor {
                     .append("howManyBountys", 0));//
         }
         // serverDatabase was already created
+
+        //First time start-up, get everything
+        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
+        serverDBLocal.put("_id", Db.get("_id"));
+        serverDBLocal.put("nextBountyTimeRemaining", Db.get("nextBountyTimeRemaining"));
+        serverDBLocal.put("defaultNextBountyTimeTick", Db.get("defaultNextBountyTimeTick"));
+        serverDBLocal.put("isBountyTimerUp", Db.get("isBountyTimerUp"));
+        serverDBLocal.put("name", Db.get("name"));
+        serverDBLocal.put("currentBountyUUID", Db.get("currentBountyUUID"));
+        serverDBLocal.put("currentBountyName", Db.get("currentBountyName"));
+        serverDBLocal.put("isBountyDead", Db.get("isBountyDead"));
+        serverDBLocal.put("wasBountyKilledByPlayer", Db.get("wasBountyKilledByPlayer"));
+        serverDBLocal.put("isBountyInGame", Db.get("isBountyInGame"));
+        serverDBLocal.put("isServerReadyForNextBounty", Db.get("isServerReadyForNextBounty"));
+        serverDBLocal.put("nextBountyUUID", Db.get("nextBountyUUID"));
+        serverDBLocal.put("nextBountyName", Db.get("nextBountyName"));
+        serverDBLocal.put("numberOfPlayersOnline", Db.get("numberOfPlayersOnline"));
+        serverDBLocal.put("bountyOfflineTime", Db.get("bountyOfflineTime"));
+        serverDBLocal.put("howManyBountys", Db.get("howManyBountys"));
+
+    }
+
+    private void backupServerDB(){
+
+        // Tell all players there might be temporary lag
+        for(Player p : Bukkit.getOnlinePlayers()){
+            p.sendMessage(ChatColor.RED+"Saving Database"+ChatColor.DARK_RED+"(lag)");
+        }
+
+        ArrayList<Bson> ValUpdate = new ArrayList<>();
+        for(Map.Entry<String, Object> localDB : serverDBLocal.entrySet()){
+            ValUpdate.add(Updates.set(localDB.getKey(), localDB.getValue()));
+        }
+        serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
+
+        for(Player p : Bukkit.getOnlinePlayers()){
+            p.sendMessage(ChatColor.YELLOW+"...");
+        }
+        // Saving Player Data Now!
+        for(Player p : Bukkit.getOnlinePlayers()){
+            playerClass pc = playerDBLocal.get(p.getUniqueId());
+            players.updateOne(Filters.eq("_id", p.getUniqueId()), pc.PlayerDBLocal);
+            p.sendMessage(ChatColor.GREEN+"Saved!");
+        }
+    }
+    //private void backupPlayersDB(){
+    //    for(Player p : Bukkit.getOnlinePlayers()){
+    //        playerClass pc = playerDBLocal.get(p.getUniqueId());
+    //        players.updateOne(Filters.eq("_id", p.getUniqueId()), pc.PlayerDBLocal);
+    //    }
+    //}
+    private void playerLeaveDB(UUID uuid){
+        playerClass pc = playerDBLocal.get(uuid);
+        players.updateOne(Filters.eq("_id", uuid), pc.PlayerDBLocal);
     }
 
     private Integer getCurrentBountyTimeRemaining() {
-        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
-        return (int) Db.get("nextBountyTimeRemaining");
+        return (int) serverDBLocal.get("nextBountyTimeRemaining");
     }
 
     private Object dbServerGet(String key) {
-        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
-        return Db.get(key);
+        return serverDBLocal.get(key);
     }
 
     private void setServerDBStartNexBounty() {
-        ArrayList<Bson> ValUpdate = new ArrayList<>();
-        ValUpdate.add(Updates.set("nextBountyTimeRemaining", dbServerGet("defaultNextBountyTimeTick")));
-        ValUpdate.add(Updates.set("isBountyTimerUp", false));
-        ValUpdate.add(Updates.set("isBountyDead", false));
-        ValUpdate.add(Updates.set("wasBountyKilledByPlayer", false));
-        ValUpdate.add(Updates.set("isServerReadyForNextBounty", false));
-        ValUpdate.add(Updates.set("currentBountyUUID", ""));
-        ValUpdate.add(Updates.set("currentBountyName", ""));
-        serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
+        serverDBLocal.put("nextBountyTimeRemaining", serverDBLocal.get("defaultNextBountyTimeTick"));
+        serverDBLocal.put("isBountyTimerUp", false);
+        serverDBLocal.put("isBountyDead", false);
+        serverDBLocal.put("wasBountyKilledByPlayer", false);
+        serverDBLocal.put("isServerReadyForNextBounty", false);
+        serverDBLocal.put("currentBountyUUID", "");
+        serverDBLocal.put("currentBountyName", "");
         for (UUID uuid : getAllDadabasePlayers()) {
             if (debug) {
                 plugin.getLogger().info("Player with UUID: " + uuid + " got reset");
@@ -791,8 +915,6 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         Player player = (Player) sender;
         if (cmd.getName().equalsIgnoreCase("bdussy")) {
-            player.getInventory().addItem(life_Shard, life_Shard, life_Shard);
-            player.sendMessage("Gave you 3 life shards");
             if(player.isOp()){
                 long s = System.currentTimeMillis()+TimeUnit.HOURS.toMillis(12);
                 plugin.serverData.set("endFreeTime", s);
@@ -803,6 +925,13 @@ public class criticalSMP implements Listener, CommandExecutor {
                 }
             }
 
+            return true;
+        }
+        if(cmd.getName().equalsIgnoreCase("donate")){
+            player.sendMessage(
+                    ChatColor.DARK_BLUE+"Paypal"+ChatColor.RESET+": "+ChatColor.BLUE+"https://www.paypal.com/donate/?business=6BPJ86S23NJ8S&no_recurring=0&item_name=Donate+to+Row%21&currency_code=USD" + "\n" +
+                    ChatColor.GREEN+"Cashapp"+ChatColor.RESET+": "+ChatColor.DARK_GREEN+"$weerow"
+                    );
             return true;
         }
         return true;

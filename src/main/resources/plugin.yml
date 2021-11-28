@@ -10,3 +10,6 @@ commands:
   bdussy:
     usage: /bdussy
     description: start prodection time
+  donate:
+    usage: /donate
+    description: Donate to Row
