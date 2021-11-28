@@ -443,7 +443,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             return;
         }
 
-        Document Db = getPLayerFromDB(uuid);
+        Document Db = players.find(new Document("_id", uuid)).first();
 
         if(playerDBLocal.get(uuid)==null && Db!=null){ // if player isn't in the local db but has played befor add them to the local
             playerClass pc = new playerClass(
