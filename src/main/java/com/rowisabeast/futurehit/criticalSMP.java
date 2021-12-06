@@ -43,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class criticalSMP implements Listener, CommandExecutor {
 
@@ -93,15 +92,15 @@ public class criticalSMP implements Listener, CommandExecutor {
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
 
-        // Bukkit.getScheduler().runTaskLater(plugin, () ->
-        //                        Bukkit.getScheduler().runTaskTimerAsynchronously(
-        //                                plugin,
-        //                                this::tick,
-        //                                0,
-        //                                5
-        //                        ),
-        //                0
-        //        );
+         Bukkit.getScheduler().runTaskLater(plugin, () ->
+                Bukkit.getScheduler().runTaskTimerAsynchronously(
+                        plugin,
+                        this::tick,
+                        0,
+                        5
+                ),
+        0
+        );
         Bukkit.getScheduler().runTaskLater(plugin, () ->
                 Bukkit.getScheduler().runTaskTimerAsynchronously(
                         plugin,
@@ -298,12 +297,12 @@ public class criticalSMP implements Listener, CommandExecutor {
 //                }
 //            }
 
-//            Player player = Bukkit.getPlayer(e.getEntity().getUniqueId());
-//            Player damager = Bukkit.getPlayer(e.getDamager().getUniqueId());
-//            if ((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")) {
-//                e.setCancelled(true);
-//                damager.sendMessage(ChatColor.BOLD + ChatColor.RED.toString() + player.customName() + ChatColor.DARK_RED + " is a Bounty, and has killed you. You can't hurt them!");
-//            }
+            Player player = Bukkit.getPlayer(e.getEntity().getUniqueId());
+            Player damager = Bukkit.getPlayer(e.getDamager().getUniqueId());
+            if ((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")) {
+                e.setCancelled(true);
+                damager.sendMessage(ChatColor.BOLD + ChatColor.RED.toString() + player.customName() + ChatColor.DARK_RED + " is a Bounty, and has killed you. You can't hurt them!");
+            }
         }
     }
 
@@ -745,11 +744,9 @@ public class criticalSMP implements Listener, CommandExecutor {
             plugin.getLogger().warning("tick isn't locked, locking and running code");
         }
 
-        if(plugin.serverData.getInt("endFreeTime")!=0){
-            if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
-                lock.unlock();
-                return;
-            }
+        if(!plugin.serverData.getBoolean("started")){
+            // fututerhit hasn't started the server yet
+            return;
         }
 //
 
@@ -957,6 +954,12 @@ public class criticalSMP implements Listener, CommandExecutor {
         if (cmd.getName().equalsIgnoreCase("bdussy")) {
             if(player.isOp()){
                 startNextBounty();
+                plugin.serverData.set("started", true);
+                try {
+                    plugin.serverData.save(plugin.data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
 
                 //long s = System.currentTimeMillis()+TimeUnit.HOURS.toMillis(12);

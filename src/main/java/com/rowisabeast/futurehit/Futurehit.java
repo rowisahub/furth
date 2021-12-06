@@ -1,12 +1,10 @@
 package com.rowisabeast.futurehit;
 
-import com.google.gson.stream.JsonReader;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import com.rowisabeast.futurehit.RandomString.RandomString;
 import org.bson.UuidRepresentation;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -16,10 +14,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class Futurehit extends JavaPlugin {
 
