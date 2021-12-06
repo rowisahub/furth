@@ -644,6 +644,24 @@ public class criticalSMP implements Listener, CommandExecutor {
         return serverDBLocal.get(key);
     }
 
+    private static void animatedTitleBounty(Player pickerPlayer) {
+        //
+        ArrayList<Player> alps = new ArrayList<Player>(Bukkit.getOnlinePlayers());
+
+        for(int i = 0; i <= 54; i++){
+            //
+            Collections.shuffle(alps);
+            sendAllTitB(alps.get(new Random().nextInt(alps.size())));
+
+
+        }
+    }
+    private static void sendAllTitB(Player p){
+        for(Player player : Bukkit.getOnlinePlayers()){
+            player.sendTitle(p.getName(), "", 0, 1, 0);
+        }
+    }
+
     private void setServerDBStartNexBounty() {
         serverDBLocal.put("nextBountyTimeRemaining", serverDBLocal.get("defaultNextBountyTimeTick"));
         serverDBLocal.put("isBountyTimerUp", false);
@@ -694,6 +712,8 @@ public class criticalSMP implements Listener, CommandExecutor {
         ArrayList<Player> allPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         int ranPl = new Random().nextInt(allPlayers.size());
         Player pickedPlayer = allPlayers.get(ranPl);
+
+        // add cool animated title
 
         if (debug) {
             plugin.getLogger().info("Picked player name: " + pickedPlayer.getName() + "\nPicker Player UUID: " + pickedPlayer.getUniqueId());
