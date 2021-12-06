@@ -93,15 +93,15 @@ public class criticalSMP implements Listener, CommandExecutor {
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
 
-        Bukkit.getScheduler().runTaskLater(plugin, () ->
-                        Bukkit.getScheduler().runTaskTimerAsynchronously(
-                                plugin,
-                                this::tick,
-                                0,
-                                5
-                        ),
-                0
-        );
+        // Bukkit.getScheduler().runTaskLater(plugin, () ->
+        //                        Bukkit.getScheduler().runTaskTimerAsynchronously(
+        //                                plugin,
+        //                                this::tick,
+        //                                0,
+        //                                5
+        //                        ),
+        //                0
+        //        );
         Bukkit.getScheduler().runTaskLater(plugin, () ->
                 Bukkit.getScheduler().runTaskTimerAsynchronously(
                         plugin,
@@ -227,11 +227,11 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        if(plugin.serverData.getInt("endFreeTime")!=0){
-            if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
-                return;
-            }
-        }
+//        if(plugin.serverData.getInt("endFreeTime")!=0){
+//            if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+//                return;
+//            }
+//        }
         Player killedPlayer = e.getEntity();
         dbPlayerEdit(killedPlayer, "isAlive", false);
         if (isPlayerBounty(killedPlayer.getUniqueId())) {
@@ -248,7 +248,7 @@ public class criticalSMP implements Listener, CommandExecutor {
                 dbServerEdit("wasBountyKilledByPlayer", true);
 
                 //spawning dead body
-                if (getPlayerLives(killedPlayer.getUniqueId()) == 0) {
+//                if (getPlayerLives(killedPlayer.getUniqueId()) == 0) {
                     // Player has no lives, THEY ARE DEAD HAHAHA
                     // add players dead body, from codys stream, IN CHECKMARK DM
 
@@ -259,22 +259,23 @@ public class criticalSMP implements Listener, CommandExecutor {
 
                     // HEHE, sorry kody
                     //spawnCorpseForAll(killedPlayer);
-                    dbPlayerEdit(killedPlayer, "deadBodyLocationWorld", killedPlayer.getWorld().getName());
-                    dbPlayerEdit(killedPlayer, "deadBodyLocationX", killedPlayer.getLocation().getX());
-                    dbPlayerEdit(killedPlayer, "deadBodyLocationY", killedPlayer.getLocation().getY());
-                    dbPlayerEdit(killedPlayer, "deadBodyLocationZ", killedPlayer.getLocation().getZ());
+//                    dbPlayerEdit(killedPlayer, "deadBodyLocationWorld", killedPlayer.getWorld().getName());
+//                    dbPlayerEdit(killedPlayer, "deadBodyLocationX", killedPlayer.getLocation().getX());
+//                    dbPlayerEdit(killedPlayer, "deadBodyLocationY", killedPlayer.getLocation().getY());
+//                    dbPlayerEdit(killedPlayer, "deadBodyLocationZ", killedPlayer.getLocation().getZ());
 
                     // Giver Killer a LifeShard
-                    e.getDrops().add(life_Shard);
-                }
+
+//                }
+                e.getDrops().add(life_Shard);
             }
         } else {
             // Player isn't bounty
-            if(plugin.serverData.getInt("endFreeTime")!=0){
-                if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
-                    return;
-                }
-            }
+//            if(plugin.serverData.getInt("endFreeTime")!=0){
+//                if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+//                    return;
+//                }
+//            }
             if (killedPlayer.getKiller() != null) {
                 Player Killer = e.getEntity().getKiller();
                 if (isPlayerBounty(Killer.getUniqueId())) {
@@ -289,20 +290,20 @@ public class criticalSMP implements Listener, CommandExecutor {
     public void onEntityDamage(EntityDamageByEntityEvent e) {
         if (e.getEntity() instanceof Player && e.getDamager() instanceof Player) {
 
-            if(plugin.serverData.getInt("endFreeTime")!=0){
-                if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
-                    e.setCancelled(true);
-                    Bukkit.getPlayer(e.getDamager().getUniqueId()).sendMessage("You can't hurt another player while the the 12hour protection time is active!");
-                    return;
-                }
-            }
+//            if(plugin.serverData.getInt("endFreeTime")!=0){
+//                if(System.currentTimeMillis()<plugin.serverData.getInt("endFreeTime")){
+//                    e.setCancelled(true);
+//                    Bukkit.getPlayer(e.getDamager().getUniqueId()).sendMessage("You can't hurt another player while the the 12hour protection time is active!");
+//                    return;
+//                }
+//            }
 
-            Player player = Bukkit.getPlayer(e.getEntity().getUniqueId());
-            Player damager = Bukkit.getPlayer(e.getDamager().getUniqueId());
-            if ((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")) {
-                e.setCancelled(true);
-                damager.sendMessage(ChatColor.BOLD + ChatColor.RED.toString() + player.customName() + ChatColor.DARK_RED + " is a Bounty, and has killed you. You can't hurt them!");
-            }
+//            Player player = Bukkit.getPlayer(e.getEntity().getUniqueId());
+//            Player damager = Bukkit.getPlayer(e.getDamager().getUniqueId());
+//            if ((Boolean) dbPlayerGet(damager.getUniqueId(), "ifKilledByBounty")) {
+//                e.setCancelled(true);
+//                damager.sendMessage(ChatColor.BOLD + ChatColor.RED.toString() + player.customName() + ChatColor.DARK_RED + " is a Bounty, and has killed you. You can't hurt them!");
+//            }
         }
     }
 
@@ -681,7 +682,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             if (debug) {
                 plugin.getLogger().info(Bukkit.getOnlinePlayers().size() + "<2");
             }
-            lock.unlock();
+            //lock.unlock();
             return;
         }
         setServerDBStartNexBounty();
@@ -723,7 +724,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         dbServerEdit("currentBountyName", pickedPlayer.getName());
         dbPlayerEdit(pickedPlayer, "isBounty", true);
         dbServerEdit("howManyBountys", (int) dbServerGet("howManyBountys") + 1);
-        lock.unlock();
+        //lock.unlock();
     }
 
     public int secondsToTicks(int Seconds) {
@@ -955,13 +956,16 @@ public class criticalSMP implements Listener, CommandExecutor {
         Player player = (Player) sender;
         if (cmd.getName().equalsIgnoreCase("bdussy")) {
             if(player.isOp()){
-                long s = System.currentTimeMillis()+TimeUnit.HOURS.toMillis(12);
-                plugin.serverData.set("endFreeTime", s);
-                try {
-                    plugin.serverData.save(plugin.data);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                startNextBounty();
+
+
+                //long s = System.currentTimeMillis()+TimeUnit.HOURS.toMillis(12);
+                //                plugin.serverData.set("endFreeTime", s);
+                //                try {
+                //                    plugin.serverData.save(plugin.data);
+                //                } catch (IOException e) {
+                //                    e.printStackTrace();
+                //                }
             }
 
             return true;
