@@ -25,9 +25,7 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -46,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class criticalSMP implements Listener, CommandExecutor {
 
@@ -195,9 +192,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         setPlayerTabNameWithLives(player); // Tablist
 
         //Spawn all dead body's for player
-        for (UUID p : deadPlsSpawnBody) {
-            spawnCorpseForPlayer(player, p);
-        }
+       // for (UUID p : deadPlsSpawnBody) {
+        //    spawnCorpseForPlayer(player, p);
+        //}
 
         //If player join with 0 lives, put them into spectator
         if (playerLives == 0) {
@@ -205,15 +202,15 @@ public class criticalSMP implements Listener, CommandExecutor {
             event.setJoinMessage("You don't have any lives!");
         }
 
-        GameProfile gameProfile = ((CraftPlayer) player).getHandle().getGameProfile();
-        Property property = (Property) gameProfile.getProperties().get("textures").toArray()[0];
-        String texture = property.getValue();
-        String signature = property.getSignature();
+        //GameProfile gameProfile = ((CraftPlayer) player).getHandle().getGameProfile();
+        //Property property = (Property) gameProfile.getProperties().get("textures").toArray()[0];
+        //String texture = property.getValue();
+        //String signature = property.getSignature();
 
 
         // SkinText
-        dbPlayerEdit(player, "SkinTexture", texture);
-        dbPlayerEdit(player, "SkinSignature", signature);
+        //dbPlayerEdit(player, "SkinTexture", texture);
+        //dbPlayerEdit(player, "SkinSignature", signature);
 
         if (Bukkit.getOnlinePlayers().size() < 2) {
             return;
@@ -258,10 +255,10 @@ public class criticalSMP implements Listener, CommandExecutor {
                     // Adding dead body here
                     //((CraftPlayer) player).getHandle();
 
-                    deadPlsSpawnBody.add(killedPlayer.getUniqueId());
+                    //deadPlsSpawnBody.add(killedPlayer.getUniqueId());
 
                     // HEHE, sorry kody
-                    spawnCorpseForAll(killedPlayer);
+                    //spawnCorpseForAll(killedPlayer);
                     dbPlayerEdit(killedPlayer, "deadBodyLocationWorld", killedPlayer.getWorld().getName());
                     dbPlayerEdit(killedPlayer, "deadBodyLocationX", killedPlayer.getLocation().getX());
                     dbPlayerEdit(killedPlayer, "deadBodyLocationY", killedPlayer.getLocation().getY());
@@ -472,7 +469,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         // local and main database havn't been set, New Player
 
         if(playerDBLocal.get(uuid)==null && Db==null) {
-            players.insertOne(new Document() // New Database entry
+             players.insertOne(new Document() // New Database entry
                     .append("_id", uuid)
                     .append("uuid", uuid)
                     .append("username", pl.getName())
@@ -492,25 +489,26 @@ public class criticalSMP implements Listener, CommandExecutor {
                     .append("SkinTexture", "")
                     .append("SkinSignature", "")
                     .append("isAlive", true));
+            Document Dbs = players.find(new Document("_id", uuid)).first();
             playerClass pc = new playerClass( // New Local DB entry
                     uuid,
                     pl.getName(),
-                    (int) Db.get("lives"),
-                    (int) Db.get("numberOfTimesPlayerHasKilledBounty"),
-                    (int) Db.get("numberOfTImesPlayerHasDiedAsBounty"),
-                    (boolean) Db.get("ifKilledByBounty"),
-                    (String) Db.get("connectionInformationHost"),
-                    (int) Db.get("connectionInformationPort"),
-                    (boolean) Db.get("isOnline"),
-                    (boolean) Db.get("isBounty"),
-                    (boolean) Db.get("isNextBounty"),
-                    (String) Db.get("deadBodyLocationWorld"),
-                    (double) Db.get("deadBodyLocationX"),
-                    (double) Db.get("deadBodyLocationY"),
-                    (double) Db.get("deadBodyLocationz"),
-                    (String) Db.get("SkinTexture"),
-                    (String) Db.get("SkinSignature"),
-                    (boolean) Db.get("isAlive")
+                    (int) Dbs.get("lives"),
+                    (int) Dbs.get("numberOfTimesPlayerHasKilledBounty"),
+                    (int) Dbs.get("numberOfTImesPlayerHasDiedAsBounty"),
+                    (boolean) Dbs.get("ifKilledByBounty"),
+                    (String) Dbs.get("connectionInformationHost"),
+                    (int) Dbs.get("connectionInformationPort"),
+                    (boolean) Dbs.get("isOnline"),
+                    (boolean) Dbs.get("isBounty"),
+                    (boolean) Dbs.get("isNextBounty"),
+                    (String) Dbs.get("deadBodyLocationWorld"),
+                    (double) Dbs.get("deadBodyLocationX"),
+                    (double) Dbs.get("deadBodyLocationY"),
+                    (double) Dbs.get("deadBodyLocationz"),
+                    (String) Dbs.get("SkinTexture"),
+                    (String) Dbs.get("SkinSignature"),
+                    (boolean) Dbs.get("isAlive")
             );
             playerDBLocal.put(uuid, pc);
             return;

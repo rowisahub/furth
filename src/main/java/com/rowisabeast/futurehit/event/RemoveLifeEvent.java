@@ -59,7 +59,7 @@ public class RemoveLifeEvent extends Event implements Cancellable {
 
             SMP.players.updateMany(Filters.eq("_id", killedPlayer.getUniqueId()), ValUpdate);
 
-            SMP.spawnCorpseForAll(killedPlayer);
+            //SMP.spawnCorpseForAll(killedPlayer);
             killedPlayer.setGameMode(GameMode.SPECTATOR);
         }
 
