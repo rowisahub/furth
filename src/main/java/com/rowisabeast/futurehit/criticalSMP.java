@@ -323,24 +323,24 @@ public class criticalSMP implements Listener, CommandExecutor {
             e.useItemInHand();
         }
     }
-
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent e){
-        if(dbServerGet("currentBountyUUID")!=null || dbServerGet("currentBountyUUID")!=""){
-
-            UUID bountyUUID = (UUID) dbServerGet("currentBountyUUID");
-
-            if(Bukkit.getPlayer(bountyUUID)==null) return;
-
-            Player p = Bukkit.getPlayer(bountyUUID);
-
-            if(e.getPlayer() == p) {
-                for (Player allplayers : Bukkit.getOnlinePlayers()) {
-                    allplayers.setCompassTarget(p.getLocation());
-                }
-            }
-        }
-    }
+//
+//    @EventHandler
+//    public void onPlayerMove(PlayerMoveEvent e){
+//        if(dbServerGet("currentBountyUUID")!=null || dbServerGet("currentBountyUUID")!=""){
+//
+//            UUID bountyUUID = (UUID) dbServerGet("currentBountyUUID");
+//
+//            if(Bukkit.getPlayer(bountyUUID)==null) return;
+//
+//            Player p = Bukkit.getPlayer(bountyUUID);
+//
+//            if(e.getPlayer() == p) {
+//                for (Player allplayers : Bukkit.getOnlinePlayers()) {
+//                    allplayers.setCompassTarget(p.getLocation());
+//                }
+//            }
+//        }
+//    }
 
     //public Objective obj;
     public void createBoardList(Player p) {
