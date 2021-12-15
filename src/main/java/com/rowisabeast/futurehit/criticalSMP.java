@@ -773,7 +773,7 @@ public class criticalSMP implements Listener, CommandExecutor {
         // Every runnable tick
         Integer bt = getCurrentBountyTimeRemaining();
         if (bt > 0) {
-            if (Bukkit.getPlayer((UUID) dbServerGet("currentBountyUUID")) == null) {
+            if (Bukkit.getPlayer(UUID.fromString((String) dbServerGet("currentBountyUUID"))) == null) {
                 plugin.getLogger().warning("current bounty isn't online");
                 int op = Bukkit.getOnlinePlayers().size();
                 if (op < 2) {
