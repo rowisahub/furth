@@ -766,6 +766,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         if(!plugin.serverData.getBoolean("started")){
             // fututerhit hasn't started the server yet
+            lock.unlock();
             return;
         }
 //
@@ -773,6 +774,10 @@ public class criticalSMP implements Listener, CommandExecutor {
         // Every runnable tick
         Integer bt = getCurrentBountyTimeRemaining();
         if (bt > 0) {
+            if(Objects.equals((String) dbServerGet("currentBountyUUID"), "")){
+                lock.unlock();
+                return;
+            }
             if (Bukkit.getPlayer(UUID.fromString((String) dbServerGet("currentBountyUUID"))) == null) {
                 plugin.getLogger().warning("current bounty isn't online");
                 int op = Bukkit.getOnlinePlayers().size();
