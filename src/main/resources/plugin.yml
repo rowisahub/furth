@@ -7,9 +7,9 @@ description: Custom Plugin for Futurehit
 website: https://rowisabeast.com
 
 commands:
-  bdussy:
-    usage: /bdussy
-    description: start prodection time
+  life:
+    usage: /live [command]
+    description: life commands
   donate:
     usage: /donate
     description: Donate to Row

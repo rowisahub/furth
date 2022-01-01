@@ -6,6 +6,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import com.rowisabeast.futurehit.TabArguments.TabArguments;
 import com.rowisabeast.futurehit.event.GiveLifeEvent;
 import com.rowisabeast.futurehit.event.RemoveLifeEvent;
 import com.rowisabeast.futurehit.lockFut.lockFut;
@@ -29,7 +30,6 @@ import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
@@ -41,7 +41,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class criticalSMP implements Listener, CommandExecutor {
@@ -86,31 +86,139 @@ public class criticalSMP implements Listener, CommandExecutor {
         //Get player body
         //getDeadPlayers();
 
-        plugin.getCommand("bdussy").setExecutor(this);
+//        plugin.getCommand("bdussy").setExecutor(this);
         plugin.getCommand("donate").setExecutor(this);
+        plugin.getCommand("life").setExecutor(this);
+        HashMap<String, HashMap<Integer, ArrayList<String>>> Commands = makenewcommands();
+//        HashMap<String, HashMap<Integer, ArrayList<String>>> newCommands = new ArrayList<String>();
+//        newCommands.add("giveShard"); // args amount
+//        newCommands.add("giveLife"); // player
+//        newCommands.add("removeLife"); // player
+//        Commands.put(0, newCommands);
+
+        plugin.getCommand("life").setTabCompleter(new TabArguments(Commands));
+        //lifeCommand.setTabCompleter(TabArguments());
+
+//        plugin.getCommand("life");
+
+        //HashMap<String, ArrayList<HashMap<String, ArrayList<String>>>> bc;
 
         addLifeEvent = new GiveLifeEvent(this);
         removeLifeEvent = new RemoveLifeEvent(this);
 
-         Bukkit.getScheduler().runTaskLater(plugin, () ->
-                Bukkit.getScheduler().runTaskTimerAsynchronously(
-                        plugin,
-                        this::tick,
-                        0,
-                        5
-                ),
-        0
-        );
+//         Bukkit.getScheduler().runTaskLater(plugin, () ->
+//                Bukkit.getScheduler().runTaskTimerAsynchronously(
+//                        plugin,
+//                        this::tick,
+//                        0,
+//                        5
+//                ),
+//        0
+//        );
         Bukkit.getScheduler().runTaskLater(plugin, () ->
                 Bukkit.getScheduler().runTaskTimerAsynchronously(
                         plugin,
                         this::backupServerDB,
-                        2400,
-                        2400
+                        24000,
+                        24000
                 ),
                 0
         );
     }
+
+    private HashMap<String, HashMap<Integer, ArrayList<String>>> makenewcommands(){
+        HashMap<String, HashMap<Integer, ArrayList<String>>> Commands = new HashMap<String, HashMap<Integer, ArrayList<String>>>();
+//        HashMap<String, HashMap<Integer, ArrayList<String>>> newCommands = new ArrayList<String>();
+//        newCommands.add("giveShard"); // player, amount
+//        newCommands.add("giveLife"); // player
+//        newCommands.add("removeLife"); // player
+//        Commands.put(0, newCommands);
+
+        // giveLife
+        HashMap<Integer, ArrayList<String>> ngc = new HashMap<Integer, ArrayList<String>>();
+        ArrayList<String> args = new ArrayList<String>();
+        // Arg 1 | Players
+        args = getPlayerNamesInList();
+        ngc.put(1, args);
+        //
+        Commands.put("giveLife", ngc);
+        //
+
+        // giveShard
+        HashMap<Integer, ArrayList<String>> ngcx = new HashMap<Integer, ArrayList<String>>();
+        ArrayList<String> argsx = new ArrayList<String>();
+        ArrayList<String> argsxc = new ArrayList<String>();
+        // Arg 1 | players
+        argsx = getPlayerNamesInList();
+        ngcx.put(1, argsx);
+        // Arg 2 | amount
+        for(int i = 1; i < 11; i++){
+            argsxc.add(String.valueOf(i));
+        }
+        ngcx.put(2, argsxc);
+        //
+        Commands.put("giveShard", ngcx);
+        //
+
+        // removeLife
+        HashMap<Integer, ArrayList<String>> ngcxv = new HashMap<Integer, ArrayList<String>>();
+        ArrayList<String> argsvx = new ArrayList<String>();
+        // Arg 1 | players
+        argsvx = getPlayerNamesInList();
+        ngcx.put(1, argsvx);
+        //
+        Commands.put("removeLife", ngcxv);
+        //
+
+        // start
+        HashMap<Integer, ArrayList<String>> start = new HashMap<Integer, ArrayList<String>>();
+        ArrayList<String> start1 = new ArrayList<String>();
+        //
+        start.put(1, start1);
+        //
+        Commands.put("start", start);
+
+        //System.out.println();
+        return Commands;
+
+    }
+
+    private ArrayList<String> getPlayerNamesInList(){
+        ArrayList<String> retNames = new ArrayList<String>();
+//        for(Player p : Bukkit.getOnlinePlayers()){
+//            retNames.add(p.getName());
+//        }
+        retNames.add("<.allPlayers.>");
+        return retNames;
+    }
+
+    /**
+     * Method return type-safe version of Bukkit::getOnlinePlayers
+     * @return {@code ArrayList} containing online players
+     */
+    public static List<Player> getOnlinePlayers() {
+        List<Player> onlinePlayers = new ArrayList<>();
+
+        try {
+            Method onlinePlayerMethod = Server.class.getMethod("getOnlinePlayers");
+            if (onlinePlayerMethod.getReturnType().equals(Collection.class)) {
+                for (Object o : ((Collection<?>) onlinePlayerMethod.invoke(Bukkit.getServer()))) {
+                    onlinePlayers.add((Player) o);
+                }
+            } else {
+                Collections.addAll(onlinePlayers, ((Player[]) onlinePlayerMethod.invoke(Bukkit.getServer())));
+            }
+        } catch (Exception e) {
+//            error(e);
+        }
+
+        return onlinePlayers;
+    }
+
+
+
+
+
 
     // Make custom recipes
     public void makeNewRecipes() {
@@ -214,7 +322,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         if (Bukkit.getOnlinePlayers().size() < 2) {
             return;
         }
-        player.sendTitle(ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString(), ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString()+ChatColor.RED+" is the bounty! BEWARE!!", 1, 20, 10);
+        if ((int) dbServerGet("howManyBountys") != 0) {
+            player.sendTitle(ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString(), ChatColor.LIGHT_PURPLE+dbServerGet("currentBountyName").toString()+ChatColor.RED+" is the bounty! BEWARE!!", 1, 20, 10);
+        }
     }
 
     @EventHandler
@@ -266,7 +376,9 @@ public class criticalSMP implements Listener, CommandExecutor {
                     // Giver Killer a LifeShard
 
 //                }
-                e.getDrops().add(life_Shard);
+                //e.getDrops().add(life_Shard);
+                killedPlayer.getWorld().dropItemNaturally(killedPlayer.getLocation(), life_Shard);
+
             }
         } else {
             // Player isn't bounty
@@ -315,12 +427,16 @@ public class criticalSMP implements Listener, CommandExecutor {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if ((e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) && e.getItem() == (life)) {
+        if (Objects.equals(e.getItem(), life) || life.equals(e.getItem())) {
             //
             Bukkit.getPluginManager().callEvent(addLifeEvent);
             addLifeEvent.addLifeToPlayer(p);
 
-            e.useItemInHand();
+            // don't use item
+            e.setCancelled(true);
+            // remove the item
+            //p.getInventory().remove();
+            removeItem(p, 1, life);
         }
     }
 //
@@ -591,9 +707,9 @@ public class criticalSMP implements Listener, CommandExecutor {
     private void backupServerDB(){
 
         // Tell all players there might be temporary lag
-        for(Player p : Bukkit.getOnlinePlayers()){
-            p.sendMessage(ChatColor.RED+"Saving Database"+ChatColor.DARK_RED+"(lag)");
-        }
+//        for(Player p : Bukkit.getOnlinePlayers()){
+//            p.sendMessage(ChatColor.RED+"Saving Database"+ChatColor.DARK_RED/*+"(lag)"*/);
+//        }
 
         ArrayList<Bson> ValUpdate = new ArrayList<>();
         for(Map.Entry<String, Object> localDB : serverDBLocal.entrySet()){
@@ -601,9 +717,9 @@ public class criticalSMP implements Listener, CommandExecutor {
         }
         serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
 
-        for(Player p : Bukkit.getOnlinePlayers()){
-            p.sendMessage(ChatColor.YELLOW+"...");
-        }
+//        for(Player p : Bukkit.getOnlinePlayers()){
+//            p.sendMessage(ChatColor.YELLOW+"...");
+//        }
         // Saving Player Data Now!
         for(Player p : Bukkit.getOnlinePlayers()){
             UUID uuid = p.getUniqueId();
@@ -664,8 +780,6 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     private void setServerDBStartNexBounty() {
         serverDBLocal.put("nextBountyTimeRemaining", serverDBLocal.get("defaultNextBountyTimeTick"));
-        serverDBLocal.put("isBountyTimerUp", false);
-        serverDBLocal.put("isBountyDead", false);
         serverDBLocal.put("wasBountyKilledByPlayer", false);
         serverDBLocal.put("isServerReadyForNextBounty", false);
         serverDBLocal.put("currentBountyUUID", "");
@@ -678,9 +792,6 @@ public class criticalSMP implements Listener, CommandExecutor {
             dpPlayerUUIDEdit(uuid, "isNextBounty", false);
             dpPlayerUUIDEdit(uuid, "ifKilledByBounty", false);
         }
-        //if(debug){
-        //    plugin.getLogger().info("");
-        //}
         if (debug) {
             plugin.getLogger().info("");
         }
@@ -692,16 +803,6 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     // run async task every 5 hours, not repeat, as we might need to stop the loop from running for a bit
     private void startNextBounty() {
-        //checking if there is enough people
-        if (Bukkit.getOnlinePlayers().size() < 2) {
-            // not enough people, going to wait...
-//            plugin.getLogger().warning("Not enough players");
-            if (debug) {
-                plugin.getLogger().info(Bukkit.getOnlinePlayers().size() + "<2");
-            }
-            //lock.unlock();
-            return;
-        }
         setServerDBStartNexBounty();
         // Get and set bounty
         setNewBounty();
@@ -709,7 +810,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     private void setNewBounty() {
         //
-        ArrayList<Player> allPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
+        ArrayList<Player> allPlayers = (ArrayList<Player>) getOnlinePlayers();
         int ranPl = new Random().nextInt(allPlayers.size());
         Player pickedPlayer = allPlayers.get(ranPl);
 
@@ -976,27 +1077,45 @@ public class criticalSMP implements Listener, CommandExecutor {
             return true;
         }
         Player player = (Player) sender;
-        if (cmd.getName().equalsIgnoreCase("bdussy")) {
-            if(player.isOp()){
-                startNextBounty();
-                plugin.serverData.set("started", true);
-                try {
-                    plugin.serverData.save(plugin.data);
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if(cmd.getName().equalsIgnoreCase("live")){
+            // live commands
+
+//          newCommands.add("giveShard"); // player, amount
+////        newCommands.add("giveLife"); // player
+////        newCommands.add("removeLife"); // player
+
+            if(args[0].equalsIgnoreCase("giveShard")){
+                //
+                if(player.isOp()){
+                    // no args
+                    if(args.length!=2){
+                        player.sendMessage("Only 2 args!");
+                        return true;
+                    }
+
+                    Player targetPlayer = Bukkit.getPlayer(args[1]);
+                    for(int i = 0; i < Integer.parseInt(args[2]); i++){
+                        targetPlayer.getInventory().addItem(life_Shard);
+                    }
+                }else{
+                    player.sendMessage(ChatColor.DARK_RED+"No way buk'o");
                 }
-
-
-                //long s = System.currentTimeMillis()+TimeUnit.HOURS.toMillis(12);
-                //                plugin.serverData.set("endFreeTime", s);
-                //                try {
-                //                    plugin.serverData.save(plugin.data);
-                //                } catch (IOException e) {
-                //                    e.printStackTrace();
-                //                }
+            }else if(args[0].equalsIgnoreCase("giveLife")){
+                //
+                return true;
+            }else if(args[0].equalsIgnoreCase("removeLife")){
+                //
+                return true;
+            }else if(args[0].equalsIgnoreCase("start")){
+                if(player.isOp()){
+                    //
+                    startNextBounty();
+                }else{
+                    player.sendMessage(ChatColor.DARK_RED+"No way buk'o");
+                }
             }
 
-            return true;
+                return true;
         }
         if(cmd.getName().equalsIgnoreCase("donate")){
             player.sendMessage(
@@ -1034,5 +1153,23 @@ public class criticalSMP implements Listener, CommandExecutor {
         ps.send(new ClientboundAddPlayerPacket(npc));
         ps.send(new ClientboundSetEntityDataPacket(npc.getId(), npc.getEntityData(), true));
         ps.send(new ClientboundRotateHeadPacket(npc, (byte) (npc.getYHeadRot()*256/360)));
+    }
+
+    public void removeItem(Player player, int count, ItemStack usedItem) {
+        Map<Integer, ? extends ItemStack> item = player.getInventory().all(usedItem);
+        // get item count
+        int found = 0;
+        for(ItemStack stack: item.values()) found += stack.getAmount();
+        if(count>found) return;
+        //
+        for(Integer index : item.keySet()){
+            ItemStack stack = item.get(index);
+            int removed = Math.min(count, stack.getAmount());
+            count -= removed;
+            if(stack.getAmount()==removed) player.getInventory().setItem(index, null); else
+                stack.setAmount(stack.getAmount()-removed);
+            if(count<=0) break;
+        }
+        player.updateInventory();
     }
 }
