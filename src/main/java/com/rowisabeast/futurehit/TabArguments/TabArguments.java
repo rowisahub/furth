@@ -54,23 +54,30 @@ public class TabArguments implements TabCompleter {
         //
         final List<String> completions = new ArrayList<>();
 
+        ArrayList<String> ret = new ArrayList<String>();
 
 //        for(HashMap<Integer, String> newEntry : poop){
 //            newEntry.get(args.length-1);
 //            StringUtil.copyPartialMatches(args[args.length-1], poop.get(args.length-1), completions);
 //        }
-//        poop.get(args.length-1)
-        if(poop.get(args[0]).get(args.length-1)==null){
-            return new ArrayList<>();
-        }
+////        poop.get(args.length-1)
+//        if(poop.get(args[0]).get(args.length-1)==null){
+//            return new ArrayList<>();
+//        }
         if(args.length-1<1){
             StringUtil.copyPartialMatches(args[args.length-1], allmaincommands, completions);
         }else{
-            if(poop.get(args[0]).get(args.length-1).equals("<.allPlayers.>")){
-                // getPlayerNamesInList()
-                StringUtil.copyPartialMatches(args[args.length-1], getPlayerNamesInList(), completions);
+
+            ret = poop.get(args[0]).get(args.length - 1);
+            for(String alargstr : ret){
+                if(alargstr.equals("<.allPlayers.>")){
+                    // add arraylist to make sure we can add players names here
+                    ret.remove(alargstr);
+                    ret.addAll(getPlayerNamesInList());
+                }
             }
-            StringUtil.copyPartialMatches(args[args.length-1], poop.get(args[0]).get(args.length-1), completions);
+
+            StringUtil.copyPartialMatches(args[args.length - 1], ret, completions);
         }
 //        if(args.length==1){
 //            StringUtil.copyPartialMatches(args[0], normalCommands, completions);
