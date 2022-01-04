@@ -1083,7 +1083,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 ////        newCommands.add("giveLife"); // player
 ////        newCommands.add("removeLife"); // player
 
-            player.sendMessage(args);
+//            player.sendMessage(args);
 
             if(args[0].equalsIgnoreCase("giveShard")){
                 //
