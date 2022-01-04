@@ -64,7 +64,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     public HashMap<UUID, Scoreboard> playerScoreboard = new HashMap<UUID, Scoreboard>();
     public HashMap<UUID, Objective> playerObjective = new HashMap<UUID, Objective>();
 
-    public HashMap<String, Object> serverDBLocal = new HashMap<String, Object>();
+    public HashMap<String, Object> dbServerGet = new HashMap<String, Object>();
     public HashMap<UUID, playerClass> playerDBLocal = new HashMap<UUID, playerClass>();
 
     GiveLifeEvent addLifeEvent;
@@ -114,15 +114,15 @@ public class criticalSMP implements Listener, CommandExecutor {
 //                ),
 //        0
 //        );
-        Bukkit.getScheduler().runTaskLater(plugin, () ->
-                Bukkit.getScheduler().runTaskTimerAsynchronously(
-                        plugin,
-                        this::backupServerDB,
-                        24000,
-                        24000
-                ),
-                0
-        );
+//        Bukkit.getScheduler().runTaskLater(plugin, () ->
+//                Bukkit.getScheduler().runTaskTimerAsynchronously(
+//                        plugin,
+//                        this::backupServerDB,
+//                        24000,
+//                        24000
+//                ),
+//                0
+//        );
     }
 
     private HashMap<String, HashMap<Integer, ArrayList<String>>> makenewcommands(){
@@ -346,6 +346,9 @@ public class criticalSMP implements Listener, CommandExecutor {
             if (debug) {
                 plugin.getLogger().info("Player that dies is bounty");
             }
+            if(!((Boolean) dbServerGet("wasBountyKilledByPlayer"))){
+                return;
+            }
             if (killedPlayer.getKiller() != null) {
                 Bukkit.getPluginManager().callEvent(removeLifeEvent);
                 removeLifeEvent.removeLifeFromPlayer(killedPlayer);
@@ -376,7 +379,8 @@ public class criticalSMP implements Listener, CommandExecutor {
 
 //                }
                 //e.getDrops().add(life_Shard);
-                killedPlayer.getWorld().dropItemNaturally(killedPlayer.getLocation(), life_Shard);
+//                killedPlayer.getWorld().dropItemNaturally(killedPlayer.getLocation(), life_Shard);
+                killer.getInventory().addItem(life_Shard);
 
             }
         } else {
@@ -430,6 +434,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             //
             Bukkit.getPluginManager().callEvent(addLifeEvent);
             addLifeEvent.addLifeToPlayer(p);
+            setPlayerTabNameWithLives(p);
 
             // don't use item
             e.setCancelled(true);
@@ -529,18 +534,18 @@ public class criticalSMP implements Listener, CommandExecutor {
 
     public void dbPlayerEdit(Player pl, String key, Object valueToUpdate) {
         UUID uuid = pl.getUniqueId();
-        //players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
-        playerDBLocal.get(uuid).PlayerDBLocal.put(key, valueToUpdate);
+        players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
+//        playerDBLocal.get(uuid).PlayerDBLocal.put(key, valueToUpdate);
     }
 
     public void dpPlayerUUIDEdit(UUID uuid, String key, Object valueToUpdate) {
-        //players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
-        playerDBLocal.get(uuid).PlayerDBLocal.put(key, valueToUpdate);
+        players.updateOne(Filters.eq("_id", uuid), Updates.set(key, valueToUpdate));
+//        playerDBLocal.get(uuid).PlayerDBLocal.put(key, valueToUpdate);
     }
 
     public void dbServerEdit(String key, Object valueToUpdate) {
-        //serverDatabase.updateOne(Filters.eq("_id", "CriticalSMP"), Updates.set(key, valueToUpdate));
-        serverDBLocal.put(key, valueToUpdate);
+        serverDatabase.updateOne(Filters.eq("_id", "CriticalSMP"), Updates.set(key, valueToUpdate));
+//        dbServerGet.put(key, valueToUpdate);
     }
 
     public Integer getPlayerLives(UUID uuid) {
@@ -654,8 +659,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     public Document getPLayerFromDB(UUID uuid) { // WORKS
-        if(playerDBLocal.get(uuid)==null) return null;
-        return playerDBLocal.get(uuid).PlayerDBLocal;
+        return  players.find(new Document("_id", uuid)).first();
     }
 
     //Set and get Server Database
@@ -684,22 +688,22 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         //First time start-up, get everything
         Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
-        serverDBLocal.put("_id", Db.get("_id"));
-        serverDBLocal.put("nextBountyTimeRemaining", Db.get("nextBountyTimeRemaining"));
-        serverDBLocal.put("defaultNextBountyTimeTick", Db.get("defaultNextBountyTimeTick"));
-        serverDBLocal.put("isBountyTimerUp", Db.get("isBountyTimerUp"));
-        serverDBLocal.put("name", Db.get("name"));
-        serverDBLocal.put("currentBountyUUID", Db.get("currentBountyUUID"));
-        serverDBLocal.put("currentBountyName", Db.get("currentBountyName"));
-        serverDBLocal.put("isBountyDead", Db.get("isBountyDead"));
-        serverDBLocal.put("wasBountyKilledByPlayer", Db.get("wasBountyKilledByPlayer"));
-        serverDBLocal.put("isBountyInGame", Db.get("isBountyInGame"));
-        serverDBLocal.put("isServerReadyForNextBounty", Db.get("isServerReadyForNextBounty"));
-        serverDBLocal.put("nextBountyUUID", Db.get("nextBountyUUID"));
-        serverDBLocal.put("nextBountyName", Db.get("nextBountyName"));
-        serverDBLocal.put("numberOfPlayersOnline", Db.get("numberOfPlayersOnline"));
-        serverDBLocal.put("bountyOfflineTime", Db.get("bountyOfflineTime"));
-        serverDBLocal.put("howManyBountys", Db.get("howManyBountys"));
+        dbServerGet.put("_id", Db.get("_id"));
+        dbServerGet.put("nextBountyTimeRemaining", Db.get("nextBountyTimeRemaining"));
+        dbServerGet.put("defaultNextBountyTimeTick", Db.get("defaultNextBountyTimeTick"));
+        dbServerGet.put("isBountyTimerUp", Db.get("isBountyTimerUp"));
+        dbServerGet.put("name", Db.get("name"));
+        dbServerGet.put("currentBountyUUID", Db.get("currentBountyUUID"));
+        dbServerGet.put("currentBountyName", Db.get("currentBountyName"));
+        dbServerGet.put("isBountyDead", Db.get("isBountyDead"));
+        dbServerGet.put("wasBountyKilledByPlayer", Db.get("wasBountyKilledByPlayer"));
+        dbServerGet.put("isBountyInGame", Db.get("isBountyInGame"));
+        dbServerGet.put("isServerReadyForNextBounty", Db.get("isServerReadyForNextBounty"));
+        dbServerGet.put("nextBountyUUID", Db.get("nextBountyUUID"));
+        dbServerGet.put("nextBountyName", Db.get("nextBountyName"));
+        dbServerGet.put("numberOfPlayersOnline", Db.get("numberOfPlayersOnline"));
+        dbServerGet.put("bountyOfflineTime", Db.get("bountyOfflineTime"));
+        dbServerGet.put("howManyBountys", Db.get("howManyBountys"));
 
     }
 
@@ -711,7 +715,7 @@ public class criticalSMP implements Listener, CommandExecutor {
 //        }
 
         ArrayList<Bson> ValUpdate = new ArrayList<>();
-        for(Map.Entry<String, Object> localDB : serverDBLocal.entrySet()){
+        for(Map.Entry<String, Object> localDB : dbServerGet.entrySet()){
             ValUpdate.add(Updates.set(localDB.getKey(), localDB.getValue()));
         }
         serverDatabase.updateMany(Filters.eq("_id", "CriticalSMP"), ValUpdate);
@@ -752,11 +756,12 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     private Integer getCurrentBountyTimeRemaining() {
-        return (int) serverDBLocal.get("nextBountyTimeRemaining");
+        return (int) dbServerGet.get("nextBountyTimeRemaining");
     }
 
     private Object dbServerGet(String key) {
-        return serverDBLocal.get(key);
+        Document Db = serverDatabase.find(new Document("_id", "CriticalSMP")).first();
+        return Db.get(key);
     }
 
     private static void animatedTitleBounty(Player pickerPlayer) {
@@ -778,11 +783,10 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     private void setServerDBStartNexBounty() {
-        serverDBLocal.put("nextBountyTimeRemaining", serverDBLocal.get("defaultNextBountyTimeTick"));
-        serverDBLocal.put("wasBountyKilledByPlayer", false);
-        serverDBLocal.put("isServerReadyForNextBounty", false);
-        serverDBLocal.put("currentBountyUUID", "");
-        serverDBLocal.put("currentBountyName", "");
+        dbServerEdit("wasBountyKilledByPlayer", false);
+        dbServerEdit("isServerReadyForNextBounty", "");
+        dbServerEdit("currentBountyUUID", "");
+        dbServerEdit("currentBountyName", "");
         for (UUID uuid : getAllDadabasePlayers()) {
             if (debug) {
                 plugin.getLogger().info("Player with UUID: " + uuid + " got reset");
