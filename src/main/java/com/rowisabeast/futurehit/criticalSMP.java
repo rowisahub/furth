@@ -787,9 +787,12 @@ public class criticalSMP implements Listener, CommandExecutor {
             if (debug) {
                 plugin.getLogger().info("Player with UUID: " + uuid + " got reset");
             }
-            dpPlayerUUIDEdit(uuid, "isBounty", false);
-            dpPlayerUUIDEdit(uuid, "isNextBounty", false);
-            dpPlayerUUIDEdit(uuid, "ifKilledByBounty", false);
+//            dpPlayerUUIDEdit(uuid, "isBounty", false);
+//            dpPlayerUUIDEdit(uuid, "isNextBounty", false);
+//            dpPlayerUUIDEdit(uuid, "ifKilledByBounty", false);
+            players.updateOne(Filters.eq("_id", uuid), Updates.set("isBounty", false));
+            players.updateOne(Filters.eq("_id", uuid), Updates.set("isNextBounty", false));
+            players.updateOne(Filters.eq("_id", uuid), Updates.set("ifKilledByBounty", false));
         }
         if (debug) {
             plugin.getLogger().info("");
@@ -841,7 +844,8 @@ public class criticalSMP implements Listener, CommandExecutor {
 
         dbServerEdit("currentBountyUUID", pickedPlayer.getUniqueId());
         dbServerEdit("currentBountyName", pickedPlayer.getName());
-        dbPlayerEdit(pickedPlayer, "isBounty", true);
+//        dbPlayerEdit(pickedPlayer, "isBounty", true);
+        players.updateOne(Filters.eq("_id", pickedPlayer.getUniqueId()), Updates.set("isBounty", true));
         dbServerEdit("howManyBountys", (int) dbServerGet("howManyBountys") + 1);
         //lock.unlock();
     }
@@ -1089,8 +1093,8 @@ public class criticalSMP implements Listener, CommandExecutor {
                 //
                 if(player.isOp()){
                     // no args
-                    if(args.length!=2){
-                        player.sendMessage("Only 2 args!");
+                    if(args.length!=3){
+                        player.sendMessage("Only 3 args!");
                         return true;
                     }
 
