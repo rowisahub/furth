@@ -17,8 +17,7 @@ public class TabArguments implements TabCompleter {
 
 
     // TODO
-    //   - Add funstion for adding args
-    //   - USE POOP
+    //   - Add funstion for adding/removing args
 //    public TabArguments(HashMap<Integer, ArrayList<String>>... inPoop){
 //        poop = inPoop;
 //        // new
@@ -43,12 +42,6 @@ public class TabArguments implements TabCompleter {
             allmaincommands.add(nin.getKey());
         }
     }
-
-    // Add arg add here
-
-
-
-
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         //
@@ -61,12 +54,13 @@ public class TabArguments implements TabCompleter {
 //            StringUtil.copyPartialMatches(args[args.length-1], poop.get(args.length-1), completions);
 //        }
 ////        poop.get(args.length-1)
-//        if(poop.get(args[0]).get(args.length-1)==null){
-//            return new ArrayList<>();
-//        }
         if(args.length-1<1){
             StringUtil.copyPartialMatches(args[args.length-1], allmaincommands, completions);
         }else{
+            if(poop.get(args[0]).get(args.length-1)==null){
+                // if there is no arguments after
+                return new ArrayList<>();
+            }
 
             ret = poop.get(args[0]).get(args.length - 1);
             for(String alargstr : ret){
@@ -101,6 +95,4 @@ public class TabArguments implements TabCompleter {
         }
         return retNames;
     }
-    //private ArrayList<Player> get
-    //HashMap<String, ArrayList<HashMap<String, ArrayList<String>>>> bc;
 }

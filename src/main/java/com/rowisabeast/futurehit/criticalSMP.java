@@ -90,13 +90,12 @@ public class criticalSMP implements Listener, CommandExecutor {
         plugin.getCommand("donate").setExecutor(this);
         plugin.getCommand("life").setExecutor(this);
         HashMap<String, HashMap<Integer, ArrayList<String>>> Commands = makenewcommands();
+        plugin.getCommand("life").setTabCompleter(new TabArguments(Commands));
 //        HashMap<String, HashMap<Integer, ArrayList<String>>> newCommands = new ArrayList<String>();
 //        newCommands.add("giveShard"); // args amount
 //        newCommands.add("giveLife"); // player
 //        newCommands.add("removeLife"); // player
 //        Commands.put(0, newCommands);
-
-        plugin.getCommand("life").setTabCompleter(new TabArguments(Commands));
         //lifeCommand.setTabCompleter(TabArguments());
 
 //        plugin.getCommand("life");
@@ -1071,7 +1070,7 @@ public class criticalSMP implements Listener, CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) { //  /verify randomcodeSK
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("§8• §7This command is §conly executable §7by players.");
             return true;
@@ -1083,6 +1082,8 @@ public class criticalSMP implements Listener, CommandExecutor {
 //          newCommands.add("giveShard"); // player, amount
 ////        newCommands.add("giveLife"); // player
 ////        newCommands.add("removeLife"); // player
+
+            player.sendMessage(args);
 
             if(args[0].equalsIgnoreCase("giveShard")){
                 //
