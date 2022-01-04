@@ -1076,7 +1076,7 @@ public class criticalSMP implements Listener, CommandExecutor {
             return true;
         }
         Player player = (Player) sender;
-        if(cmd.getName().equalsIgnoreCase("live")){
+        if(cmd.getName().equalsIgnoreCase("life")){
             // live commands
 
 //          newCommands.add("giveShard"); // player, amount

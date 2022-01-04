@@ -8,7 +8,7 @@ website: https://rowisabeast.com
 
 commands:
   life:
-    usage: /live [command]
+    usage: /life [command]
     description: life commands
   donate:
     usage: /donate
